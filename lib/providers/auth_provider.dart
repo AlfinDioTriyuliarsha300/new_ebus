@@ -1,25 +1,49 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart';
 import '../core/constants/storage_keys.dart';
+import '../core/services/auth_service.dart';
+import '../models/user_model.dart';
 
 class AuthProvider extends ChangeNotifier {
+  final AuthService _authService = AuthService();
+
   bool isLoading = false;
 
   bool isLoggedIn = false;
 
   String? role;
 
+  UserModel? currentUser;
+
   Future<void> login({required String email, required String password}) async {
+    final device = kIsWeb ? "web" : "mobile";
     isLoading = true;
 
     notifyListeners();
 
     try {
-      await Future.delayed(const Duration(seconds: 2));
+      currentUser = await _authService.login(
+        email: email,
+
+        password: password,
+
+        device: device,
+      );
+
+      await saveLogin(
+        userId: currentUser!.id,
+
+        email: currentUser!.email,
+
+        role: currentUser!.role,
+      );
 
       isLoggedIn = true;
+
+      role = currentUser!.role;
     } catch (e) {
-      debugPrint(e.toString());
+      rethrow;
     } finally {
       isLoading = false;
 

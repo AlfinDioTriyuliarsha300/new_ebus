@@ -1,16 +1,16 @@
+import 'package:flutter/foundation.dart';
+
 class ApiConstants {
-  // Ganti nanti sesuai Railway
+  // static const String baseUrl =
+  //     'https://ebus-api-production.up.railway.app/api';
 
-  static const String baseUrl = 'http://localhost:3000/api';
+  static String get baseUrl {
+    if (kIsWeb) {
+      return "http://localhost:8080/api";
+    }
 
-  static const String login = '/auth/login';
+    return "http://10.0.2.2:8080/api";
+  }
 
-  static const String register = '/auth/register';
-
-  static const String forgotPassword = '/auth/forgot-password';
-
-  static const String profile = '/auth/profile';
-
-  //   static const String baseUrl =
-  //       'https://new-ebus-api.up.railway.app/api';
+  static const String login = "/users/login";
 }

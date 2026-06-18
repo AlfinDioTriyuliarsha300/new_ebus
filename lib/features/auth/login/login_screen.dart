@@ -81,11 +81,30 @@ class _LoginScreenState extends State<LoginScreen> {
                         return CustomButton(
                           text: auth.isLoading ? "Loading..." : "Login",
 
-                          onPressed: () {
-                            auth.login(
-                              email: emailController.text,
-                              password: passwordController.text,
-                            );
+                          onPressed: () async {
+                            try {
+                              await auth.login(
+                                email: emailController.text,
+
+                                password: passwordController.text,
+                              );
+
+                              final role = auth.currentUser!.role.toLowerCase();
+
+                              if (role == "super_admin") {
+                                context.go("/super-admin");
+                              } else if (role == "admin_perusahaan") {
+                                context.go("/admin-company");
+                              } else if (role == "driver") {
+                                context.go("/driver-main");
+                              } else if (role == "penumpang") {
+                                context.go("/passenger-main");
+                              }
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(e.toString())),
+                              );
+                            }
                           },
                         );
                       },

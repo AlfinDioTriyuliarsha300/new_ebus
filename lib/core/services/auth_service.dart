@@ -1,16 +1,28 @@
 import 'package:dio/dio.dart';
 
-import '../constants/api_constants.dart';
+import '../../models/user_model.dart';
 import 'api_service.dart';
 
 class AuthService {
-  Future<Response> login({
+  Future<UserModel> login({
     required String email,
     required String password,
+    required String device,
   }) async {
-    return await ApiService.dio.post(
-      ApiConstants.login,
-      data: {'email': email, 'password': password},
-    );
+    try {
+      Response response = await ApiService.dio.post(
+          '/users/login',
+
+        data: {'email': email, 'password': password, 'device': device},
+      );
+
+      if (response.data['success']) {
+        return UserModel.fromJson(response.data['data']);
+      }
+
+      throw Exception(response.data['message']);
+    } catch (e) {
+      throw Exception(e.toString());
+    }
   }
 }

@@ -1,19 +1,17 @@
 class RouteNames {
+
   static const splash = '/';
 
   static const login = '/login';
 
   static const register = '/register';
 
-  static const forgotPassword = '/forgot-password';
+  static const forgotPassword =
+      '/forgot-password';
 
-  static const ticketTracking = '/ticket-tracking';
+  static const driverMain =
+      '/driver-main';
 
-  static const driverHome = '/driver-home';
-
-  static const passengerHome = '/passenger-home';
-
-  static const superAdminHome = '/super-admin-home';
-
-  static const adminCompanyHome = '/admin-company-home';
+  static const passengerMain =
+      '/passenger-main';
 }
