@@ -1,5 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:new_ebus/providers/checkpoint_provider.dart';
+import 'package:new_ebus/providers/company_provider.dart';
+import 'package:new_ebus/providers/driver_dashboard_provider.dart';
+import 'package:new_ebus/providers/driver_provider.dart';
+import 'package:new_ebus/providers/mesin_provider.dart';
+import 'package:new_ebus/providers/profile_provider.dart';
+import 'package:new_ebus/providers/report_provider.dart';
+import 'package:new_ebus/providers/route_provider.dart';
+import 'package:new_ebus/providers/schedule_provider.dart';
+import 'package:new_ebus/providers/terminal_provider.dart';
+import 'package:new_ebus/providers/user_provider.dart';
 import 'package:provider/provider.dart';
+import 'providers/province_provider.dart';
+import 'providers/city_provider.dart';
+import 'package:new_ebus/providers/monitoring_provider.dart';
+import 'providers/driver_tracking_provider.dart';
 
 import 'core/routes/app_router.dart';
 import 'core/theme/app_theme.dart';
@@ -13,15 +28,39 @@ void main() {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
 
-        ChangeNotifierProvider(
-          create: (_) => AuthProvider(),
-        ),
+        ChangeNotifierProvider(create: (_) => BusProvider()),
 
-        ChangeNotifierProvider(
-          create: (_) => BusProvider(),
-        ),
+        ChangeNotifierProvider(create: (_) => DriverProvider()),
 
+        ChangeNotifierProvider(create: (_) => MesinProvider()),
+
+        ChangeNotifierProvider(create: (_) => RouteProvider()),
+
+        ChangeNotifierProvider(create: (_) => ScheduleProvider()),
+
+        ChangeNotifierProvider(create: (_) => TerminalProvider()),
+
+        ChangeNotifierProvider(create: (_) => CheckpointProvider()),
+
+        ChangeNotifierProvider(create: (_) => ProvinceProvider()),
+
+        ChangeNotifierProvider(create: (_) => CityProvider()),
+
+        ChangeNotifierProvider(create: (_) => MonitoringProvider()),
+
+        ChangeNotifierProvider(create: (_) => ProfileProvider()),
+
+        ChangeNotifierProvider(create: (_) => CompanyProvider()),
+
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+
+        ChangeNotifierProvider(create: (_) => ReportProvider()),
+
+        ChangeNotifierProvider(create: (_) => DriverDashboardProvider()),
+
+        ChangeNotifierProvider(create: (_) => DriverTrackingProvider()),
       ],
 
       child: const EBusApp(),

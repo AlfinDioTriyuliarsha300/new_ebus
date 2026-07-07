@@ -11,10 +11,16 @@ class AuthService {
   }) async {
     try {
       Response response = await ApiService.dio.post(
-          '/users/login',
+      '/users/login',
+      data: {
+        'email': email,
+        'password': password,
+        'device': device,
+      },
+    );
 
-        data: {'email': email, 'password': password, 'device': device},
-      );
+    print("LOGIN RESPONSE");
+    print(response.data);
 
       if (response.data['success']) {
         return UserModel.fromJson(response.data['data']);

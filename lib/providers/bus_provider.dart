@@ -29,14 +29,22 @@ class BusProvider extends ChangeNotifier {
 
   Future<void> addBus({
     required int companyId,
+    required int? driverId,
     required String nomorBus,
     required String platNomor,
+    required int mesinId,
+    required int? routeId,
+    required int? scheduleId,
     required String status,
   }) async {
     await _service.createBus(
       companyId: companyId,
+      driverId: driverId,
       nomorBus: nomorBus,
       platNomor: platNomor,
+      mesinId: mesinId,
+      routeId: routeId,
+      scheduleId: scheduleId,
       status: status,
     );
 
@@ -45,14 +53,24 @@ class BusProvider extends ChangeNotifier {
 
   Future<void> editBus({
     required int id,
+    required int companyId,
+    required int? driverId,
     required String nomorBus,
     required String platNomor,
+    required int mesinId,
+    required int? routeId,
+    required int? scheduleId,
     required String status,
   }) async {
     await _service.updateBus(
       id: id,
+      companyId: companyId,
+      driverId: driverId,
       nomorBus: nomorBus,
       platNomor: platNomor,
+      mesinId: mesinId,
+      routeId: routeId,
+      scheduleId: scheduleId,
       status: status,
     );
 

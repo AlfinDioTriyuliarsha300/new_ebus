@@ -37,6 +37,10 @@ class AuthProvider extends ChangeNotifier {
         email: currentUser!.email,
 
         role: currentUser!.role,
+
+        companyId: currentUser!.companyId,
+
+        cityId: currentUser!.cityId,
       );
 
       isLoggedIn = true;
@@ -55,6 +59,8 @@ class AuthProvider extends ChangeNotifier {
     required int userId,
     required String email,
     required String role,
+    required int companyId,
+    required int cityId,
   }) async {
     final prefs = await SharedPreferences.getInstance();
 
@@ -63,6 +69,10 @@ class AuthProvider extends ChangeNotifier {
     await prefs.setString(StorageKeys.email, email);
 
     await prefs.setString(StorageKeys.role, role);
+
+    await prefs.setInt('company_id', companyId);
+
+    await prefs.setInt('city_id', cityId);
 
     await prefs.setBool('is_logged_in', true);
   }

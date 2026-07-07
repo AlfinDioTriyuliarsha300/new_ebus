@@ -21,11 +21,7 @@ class AdminSidebar extends StatelessWidget {
         children: [
           const SizedBox(height: 30),
 
-          const Icon(
-            Icons.directions_bus,
-            color: Colors.white,
-            size: 60,
-          ),
+          const Icon(Icons.directions_bus, color: Colors.white, size: 60),
 
           const SizedBox(height: 10),
 
@@ -42,19 +38,21 @@ class AdminSidebar extends StatelessWidget {
 
           _menu("Dashboard", Icons.dashboard, 0),
 
-          _menu("Manajemen Armada", Icons.directions_bus, 1),
+          _menu("Manajemen Terminal", Icons.location_city, 1),
 
-          _menu("Manajemen Rute", Icons.route, 2),
+          _menu("Manajemen Armada", Icons.directions_bus, 2),
 
-          _menu("Manajemen Jadwal", Icons.schedule, 3),
+          _menu("Manajemen Rute", Icons.route, 3),
 
-          _menu("Manajemen Driver", Icons.person, 4),
+          _menu("Manajemen Jadwal", Icons.schedule, 4),
 
-          _menu("Monitoring Bus", Icons.location_on, 5),
+          _menu("Manajemen Driver", Icons.person, 5),
 
-          _menu("Laporan", Icons.bar_chart, 6),
+          _menu("Monitoring Bus", Icons.location_on, 6),
 
-          _menu("Pengaturan Akun", Icons.settings, 7),
+          _menu("Laporan", Icons.bar_chart, 7),
+
+          _menu("Pengaturan Akun", Icons.settings, 8),
 
           const Spacer(),
 
@@ -66,27 +64,15 @@ class AdminSidebar extends StatelessWidget {
     );
   }
 
-  Widget _menu(
-    String title,
-    IconData icon,
-    int index,
-  ) {
+  Widget _menu(String title, IconData icon, int index) {
     return ListTile(
       selected: selectedMenu == index,
 
       selectedTileColor: Colors.blueGrey,
 
-      leading: Icon(
-        icon,
-        color: Colors.white,
-      ),
+      leading: Icon(icon, color: Colors.white),
 
-      title: Text(
-        title,
-        style: const TextStyle(
-          color: Colors.white,
-        ),
-      ),
+      title: Text(title, style: const TextStyle(color: Colors.white)),
 
       onTap: () {
         onMenuSelected(index);

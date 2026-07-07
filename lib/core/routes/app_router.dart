@@ -1,14 +1,24 @@
 import 'package:go_router/go_router.dart';
+import 'package:new_ebus/features/driver/home/driver_home_screen.dart';
 import 'package:new_ebus/features/passenger/screens/passenger_main_screen.dart';
 import 'package:new_ebus/features/web/admin_company/armada_screen.dart';
+import 'package:new_ebus/features/web/admin_company/driver_management_screen.dart';
+import 'package:new_ebus/features/web/admin_company/report/report_screen.dart';
+import 'package:new_ebus/features/web/admin_company/route_management_screen.dart';
+import 'package:new_ebus/features/web/admin_company/settings/settings_screen.dart';
+import 'package:new_ebus/features/web/admin_company/terminal_management_screen.dart';
+import 'package:new_ebus/features/web/admin_company/schedule_management_screen.dart';
+import 'package:new_ebus/features/web/admin_company/monitoring_screen.dart';
+import 'package:new_ebus/features/web/super_admin/dashboard/super_admin_dashboard.dart';
+import 'package:new_ebus/features/web/super_admin/reports/super_admin_report_screen.dart';
+import 'package:new_ebus/features/web/super_admin/user_management/user_management_screen.dart';
 
 import '../../features/auth/splash_screen.dart';
 import '../../features/auth/login/login_screen.dart';
 import '../../features/auth/register/register_screen.dart';
 import '../../features/auth/forgot_password/forgot_password_screen.dart';
-import '../../features/driver/screens/driver_main_screen.dart';
-import '../../features/web/super_admin/super_admin_dashboard.dart';
 import '../../features/web/admin_company/admin_company_dashboard.dart';
+import '../../features/web/super_admin/company_management/company_management_screen.dart';
 import 'route_names.dart';
 
 class AppRouter {
@@ -47,7 +57,7 @@ class AppRouter {
 
       GoRoute(
         path: '/driver-main',
-        builder: (context, state) => const DriverMainScreen(),
+        builder: (context, state) => const DriverHomeScreen(),
       ),
 
       GoRoute(
@@ -56,8 +66,58 @@ class AppRouter {
       ),
 
       GoRoute(
-        path: '/armada',
-        builder: (context, state) => const ArmadaScreen(),
+        path: "/armada",
+        builder: (context, state) => const ArmadaScreen(companyId: 2),
+      ),
+
+      GoRoute(
+        path: "/route",
+        builder: (context, state) => const RouteManagementScreen(),
+      ),
+
+      GoRoute(
+        path: "/terminal",
+        builder: (context, state) => const TerminalManagementScreen(),
+      ),
+
+      GoRoute(
+        path: "/schedule",
+        builder: (context, state) => const ScheduleManagementScreen(),
+      ),
+
+      GoRoute(
+        path: "/driver",
+        builder: (context, state) => const DriverManagementScreen(),
+      ),
+
+      GoRoute(
+        path: "/monitoring",
+        builder: (context, state) => const MonitoringScreen(),
+      ),
+
+      GoRoute(
+        path: "/report",
+        builder: (context, state) => const ReportScreen(),
+      ),
+
+      GoRoute(
+        path: "/setting",
+        builder: (context, state) => const SettingScreen(),
+      ),
+
+      GoRoute(
+        path: RouteNames.companyManagement,
+        builder: (context, state) => const CompanyManagementScreen(),
+      ),
+
+      GoRoute(
+        path: "/user-management",
+        builder: (context, state) => const UserManagementScreen(),
+      ),
+
+      GoRoute(
+        path: "/super-admin-report",
+        builder: (context, state) => const SuperAdminReportScreen(),
       ),
     ],
   );
