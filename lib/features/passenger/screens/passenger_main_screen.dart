@@ -43,9 +43,13 @@ class _PassengerMainScreenState
 
         onTap: (value) {
 
+          debugPrint("Klik Index = $value");
+
           setState(() {
             currentIndex = value;
           });
+
+          debugPrint("Current = $currentIndex");
         },
 
         type: BottomNavigationBarType.fixed,

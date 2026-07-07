@@ -22,30 +22,34 @@ class AdminCompanyDashboard extends StatelessWidget {
                   break;
 
                 case 1:
-                  context.go("/armada");
+                  context.go("/terminal");
                   break;
 
                 case 2:
-                  context.go("/route");
+                  context.go("/armada");
                   break;
 
                 case 3:
-                  context.go("/schedule");
+                  context.go("/route");
                   break;
 
                 case 4:
-                  context.go("/driver");
+                  context.go("/schedule");
                   break;
 
                 case 5:
-                  context.go("/monitoring");
+                  context.go("/driver");
                   break;
 
                 case 6:
-                  context.go("/report");
+                  context.go("/monitoring");
                   break;
 
                 case 7:
+                  context.go("/report");
+                  break;
+
+                case 8:
                   context.go("/setting");
                   break;
 
@@ -61,16 +65,12 @@ class AdminCompanyDashboard extends StatelessWidget {
               padding: const EdgeInsets.all(24),
 
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
 
                 children: [
                   const Text(
                     "Dashboard Admin Perusahaan",
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                   ),
 
                   const SizedBox(height: 30),

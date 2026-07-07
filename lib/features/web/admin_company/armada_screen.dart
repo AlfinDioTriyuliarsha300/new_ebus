@@ -1,26 +1,62 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../providers/bus_provider.dart';
+import '../../../providers/driver_provider.dart';
+import '../../../providers/mesin_provider.dart';
+import '../../../providers/route_provider.dart';
+import '../../../providers/schedule_provider.dart';
+
 import 'widgets/sidebar.dart';
 
 class ArmadaScreen extends StatefulWidget {
-  const ArmadaScreen({super.key});
+  final int companyId;
+
+  const ArmadaScreen({super.key, required this.companyId});
 
   @override
   State<ArmadaScreen> createState() => _ArmadaScreenState();
 }
 
 class _ArmadaScreenState extends State<ArmadaScreen> {
+  bool isPlatDuplicate(String plat, BusProvider provider, int currentBusId) {
+    return provider.buses.any(
+      (bus) =>
+          bus.platNomor.toLowerCase() == plat.toLowerCase() &&
+          bus.id != currentBusId,
+    );
+  }
+
   @override
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
 
-      context.read<BusProvider>().getBuses();
+      final prefs = await SharedPreferences.getInstance();
+
+      final companyId =
+          prefs.getInt('company_id') ?? 0;
+
+      await context.read<BusProvider>().getBuses();
+
+      await context.read<DriverProvider>().getDrivers(
+        companyId,
+      );
+
+      await context.read<MesinProvider>().getMesin();
+
+      await context.read<RouteProvider>().getRoutes(
+        companyId,
+      );
+
+      await context.read<ScheduleProvider>().getSchedules(
+        companyId,
+      );
+
     });
   }
 
@@ -38,30 +74,34 @@ class _ArmadaScreenState extends State<ArmadaScreen> {
                   break;
 
                 case 1:
-                  context.go("/armada");
+                  context.go("/terminal");
                   break;
 
                 case 2:
-                  context.go("/route");
+                  context.go("/armada");
                   break;
 
                 case 3:
-                  context.go("/schedule");
+                  context.go("/route");
                   break;
 
                 case 4:
-                  context.go("/driver");
+                  context.go("/schedule");
                   break;
 
                 case 5:
-                  context.go("/monitoring");
+                  context.go("/driver");
                   break;
 
                 case 6:
-                  context.go("/report");
+                  context.go("/monitoring");
                   break;
 
                 case 7:
+                  context.go("/report");
+                  break;
+
+                case 8:
                   context.go("/setting");
                   break;
 
@@ -100,12 +140,14 @@ class _ArmadaScreenState extends State<ArmadaScreen> {
                       ElevatedButton.icon(
                         onPressed: () {
                           final nomorController = TextEditingController();
-
                           final platController = TextEditingController();
 
-                          final statusController = TextEditingController(
-                            text: "Aktif",
-                          );
+                          int? selectedDriverId;
+                          int? selectedMesinId;
+                          int? selectedRouteId;
+                          int? selectedScheduleId;
+
+                          String status = "Aktif";
 
                           showDialog(
                             context: context,
@@ -114,58 +156,244 @@ class _ArmadaScreenState extends State<ArmadaScreen> {
                                 title: const Text("Tambah Armada"),
 
                                 content: SizedBox(
-                                  width: 400,
-
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-
-                                    children: [
-                                      TextField(
-                                        controller: nomorController,
-                                        decoration: const InputDecoration(
-                                          labelText: "Nomor Bus",
+                                  width: 450,
+                                  child: SingleChildScrollView(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        DropdownButtonFormField<int>(
+                                          value: selectedDriverId,
+                                          decoration: const InputDecoration(
+                                            labelText: "Driver",
+                                            border: OutlineInputBorder(),
+                                          ),
+                                          items: context
+                                              .read<DriverProvider>()
+                                              .drivers
+                                              .map((driver) {
+                                                return DropdownMenuItem(
+                                                  value: driver.id,
+                                                  child: Text(
+                                                    driver.driverName,
+                                                  ),
+                                                );
+                                              })
+                                              .toList(),
+                                          onChanged: (value) {
+                                            selectedDriverId = value;
+                                          },
                                         ),
-                                      ),
 
-                                      const SizedBox(height: 10),
-
-                                      TextField(
-                                        controller: platController,
-                                        decoration: const InputDecoration(
-                                          labelText: "Plat Nomor",
+                                        TextFormField(
+                                          controller: nomorController,
+                                          decoration: InputDecoration(
+                                            labelText: "Nomor Bus",
+                                            prefixIcon: Icon(
+                                              Icons.confirmation_number,
+                                            ),
+                                            border: OutlineInputBorder(),
+                                          ),
                                         ),
-                                      ),
 
-                                      const SizedBox(height: 10),
+                                        const SizedBox(height: 10),
 
-                                      TextField(
-                                        controller: statusController,
-                                        decoration: const InputDecoration(
-                                          labelText: "Status",
+                                        TextFormField(
+                                          controller: platController,
+                                          decoration: InputDecoration(
+                                            labelText: "Plat Nomor",
+                                            prefixIcon: Icon(Icons.pin),
+                                            border: OutlineInputBorder(),
+                                          ),
                                         ),
-                                      ),
-                                    ],
+
+                                        const SizedBox(height: 10),
+
+                                        DropdownButtonFormField<String>(
+                                          initialValue: status,
+                                          decoration: InputDecoration(
+                                            labelText: "Status Armada",
+                                            prefixIcon: Icon(Icons.verified),
+                                            border: OutlineInputBorder(),
+                                          ),
+                                          items: const [
+                                            DropdownMenuItem(
+                                              value: "Aktif",
+                                              child: Text("🟢 Aktif"),
+                                            ),
+
+                                            DropdownMenuItem(
+                                              value: "Non Aktif",
+                                              child: Text("⚫ Non Aktif"),
+                                            ),
+
+                                            DropdownMenuItem(
+                                              value: "Tidak Ada Driver",
+                                              child: Text("🔴 Tidak Ada Driver"),
+                                            ),
+
+                                            DropdownMenuItem(
+                                              value: "Maintenance",
+                                              child: Text("🟠 Maintenance"),
+                                            ),
+                                          ],
+                                          onChanged: (value) {
+                                            status = value!;
+                                          },
+                                        ),
+
+                                        const SizedBox(height: 10),
+
+                                        DropdownButtonFormField<int>(
+                                          value: selectedMesinId,
+                                          decoration: const InputDecoration(
+                                            labelText: "Mesin",
+                                            border: OutlineInputBorder(),
+                                          ),
+                                          items: context
+                                              .read<MesinProvider>()
+                                              .mesinList
+                                              .map((mesin) {
+                                                return DropdownMenuItem(
+                                                  value: mesin.id,
+                                                  child: Text(mesin.namaMesin),
+                                                );
+                                              })
+                                              .toList(),
+                                          onChanged: (value) {
+                                            selectedMesinId = value;
+                                          },
+                                        ),
+
+                                        const SizedBox(height: 10),
+
+                                        DropdownButtonFormField<int>(
+                                          value: selectedRouteId,
+                                          decoration: const InputDecoration(
+                                            labelText: "Route",
+                                            border: OutlineInputBorder(),
+                                          ),
+                                          items: context
+                                              .read<RouteProvider>()
+                                              .routes
+                                              .map((route) {
+                                                return DropdownMenuItem(
+                                                  value: route.id,
+                                                  child: Text(route.namaRute),
+                                                );
+                                              })
+                                              .toList(),
+                                          onChanged: (value) {
+                                            selectedRouteId = value;
+                                          },
+                                        ),
+
+                                        const SizedBox(height: 10),
+
+                                        DropdownButtonFormField<int>(
+                                          value: selectedScheduleId,
+                                          decoration: const InputDecoration(
+                                            labelText: "Schedule",
+                                            border: OutlineInputBorder(),
+                                          ),
+                                          items: context
+                                              .read<ScheduleProvider>()
+                                              .schedules
+                                              .map((schedule) {
+                                                return DropdownMenuItem(
+                                                  value: schedule.id,
+                                                  child: Text(
+                                                    schedule.jamBerangkat,
+                                                  ),
+                                                );
+                                              })
+                                              .toList(),
+                                          onChanged: (value) {
+                                            selectedScheduleId = value;
+                                          },
+                                        ),
+
+                                        const SizedBox(height: 10),
+                                      ],
+                                    ),
                                   ),
                                 ),
 
                                 actions: [
-                                  TextButton(
+                                  OutlinedButton.icon(
+                                    icon: const Icon(Icons.close),
+
+                                    label: const Text("Batal"),
+
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: Colors.red,
+                                    ),
+
                                     onPressed: () {
                                       Navigator.pop(dialogContext);
                                     },
-                                    child: const Text("Batal"),
                                   ),
 
-                                  ElevatedButton(
+                                  ElevatedButton.icon(
+                                    icon: const Icon(Icons.save),
+                                    label: const Text("Simpan"),
                                     onPressed: () async {
-                                      await provider.addBus(
-                                        companyId: 2,
-                                        nomorBus: nomorController.text,
-                                        platNomor: platController.text,
-                                        status: statusController.text,
+                                      if (nomorController.text.isEmpty ||
+                                          platController.text.isEmpty ||
+                                          selectedDriverId == null ||
+                                          selectedMesinId == null ||
+                                          selectedRouteId == null ||
+                                          selectedScheduleId == null) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              "Semua data armada wajib diisi",
+                                            ),
+                                          ),
+                                        );
+
+                                        return;
+                                      }
+
+                                      final duplicate = provider.buses.any(
+                                      (b) =>
+                                          b.platNomor.toLowerCase() ==
+                                          platController.text.trim().toLowerCase(),
+                                    );
+
+                                    if (duplicate) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            "Plat nomor sudah digunakan",
+                                          ),
+                                        ),
                                       );
 
-                                      if (!context.mounted) return;
+                                      return;
+                                    }
+
+                                      await provider.addBus(
+                                        companyId: widget.companyId,
+
+                                        driverId: selectedDriverId,
+
+                                        nomorBus: nomorController.text.trim(),
+
+                                        platNomor: platController.text.trim(),
+
+                                        mesinId: selectedMesinId!,
+
+                                        routeId: selectedRouteId,
+
+                                        scheduleId: selectedScheduleId,
+
+                                        status: status,
+                                      );
+                                      await provider.getBuses();
+
+                                      if (!dialogContext.mounted) return;
 
                                       Navigator.pop(dialogContext);
 
@@ -179,7 +407,6 @@ class _ArmadaScreenState extends State<ArmadaScreen> {
                                         ),
                                       );
                                     },
-                                    child: const Text("Simpan"),
                                   ),
                                 ],
                               );
@@ -210,19 +437,42 @@ class _ArmadaScreenState extends State<ArmadaScreen> {
                                 child: DataTable(
                                   columns: const [
                                     DataColumn(label: Text("ID")),
-
                                     DataColumn(label: Text("Nomor Bus")),
-
                                     DataColumn(label: Text("Plat Nomor")),
-
+                                    DataColumn(label: Text("Driver")),
+                                    DataColumn(label: Text("Mesin")),
+                                    DataColumn(label: Text("Route")),
+                                    DataColumn(label: Text("Schedule")),
                                     DataColumn(label: Text("Status")),
-
                                     DataColumn(label: Text("Tracking")),
-
                                     DataColumn(label: Text("Aksi")),
                                   ],
 
                                   rows: provider.buses.map((bus) {
+                                    final mesin = context
+                                        .read<MesinProvider>()
+                                        .mesinList
+                                        .where((m) => m.id == bus.mesinId)
+                                        .firstOrNull;
+
+                                    final driver = context
+                                        .read<DriverProvider>()
+                                        .drivers
+                                        .where((d) => d.id == bus.driverId)
+                                        .firstOrNull;
+
+                                    final route = context
+                                        .read<RouteProvider>()
+                                        .routes
+                                        .where((r) => r.id == bus.routeId)
+                                        .firstOrNull;
+
+                                    final schedule = context
+                                        .read<ScheduleProvider>()
+                                        .schedules
+                                        .where((s) => s.id == bus.scheduleId)
+                                        .firstOrNull;
+
                                     return DataRow(
                                       cells: [
                                         DataCell(Text(bus.id.toString())),
@@ -231,7 +481,53 @@ class _ArmadaScreenState extends State<ArmadaScreen> {
 
                                         DataCell(Text(bus.platNomor)),
 
-                                        DataCell(Text(bus.status)),
+                                        DataCell(
+                                          Text(driver?.driverName ?? "-"),
+                                        ),
+
+                                        DataCell(Text(mesin?.namaMesin ?? "-")),
+
+                                        DataCell(Text(route?.namaRute ?? "-")),
+
+                                        DataCell(
+                                          Text(schedule?.jamBerangkat ?? "-"),
+                                        ),
+
+                                        DataCell(
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                              vertical: 6,
+                                            ),
+
+                                            decoration: BoxDecoration(
+                                              color: bus.status == "Aktif"
+                                                  ? Colors.green.shade100
+                                                  : bus.status == "Maintenance"
+                                                      ? Colors.orange.shade100
+                                                      : bus.status == "Tidak Ada Driver"
+                                                          ? Colors.red.shade100
+                                                          : Colors.grey.shade300,
+
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                            ),
+
+                                            child: Text(
+                                              bus.status,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: bus.status == "Aktif"
+                                                    ? Colors.green
+                                                    : bus.status == "Maintenance"
+                                                        ? Colors.orange
+                                                        : bus.status == "Tidak Ada Driver"
+                                                            ? Colors.red
+                                                            : Colors.black,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
 
                                         DataCell(
                                           Text(
@@ -258,39 +554,246 @@ class _ArmadaScreenState extends State<ArmadaScreen> {
                                                             text: bus.platNomor,
                                                           );
 
+                                                      int? editDriverId =
+                                                          bus.driverId;
+                                                      int? editMesinId =
+                                                          bus.mesinId;
+                                                      int? editRouteId =
+                                                          bus.routeId;
+                                                      int? editScheduleId =
+                                                          bus.scheduleId;
+
+                                                      String editStatus =
+                                                          bus.status;
+
                                                       return AlertDialog(
                                                         title: const Text(
                                                           "Edit Armada",
                                                         ),
 
-                                                        content: Column(
-                                                          mainAxisSize:
-                                                              MainAxisSize.min,
-                                                          children: [
-                                                            TextField(
-                                                              controller:
-                                                                  nomorController,
-                                                              decoration:
-                                                                  const InputDecoration(
-                                                                    labelText:
-                                                                        "Nomor Bus",
-                                                                  ),
-                                                            ),
+                                                        content: SizedBox(
+                                                          width: 450,
+                                                          child: SingleChildScrollView(
+                                                            child: Column(
+                                                              mainAxisSize:
+                                                                  MainAxisSize
+                                                                      .min,
+                                                              children: [
+                                                                DropdownButtonFormField<
+                                                                  int
+                                                                >(
+                                                                  initialValue:
+                                                                      editDriverId,
+                                                                  decoration:
+                                                                      const InputDecoration(
+                                                                        labelText:
+                                                                            "Driver",
+                                                                      ),
+                                                                  items: context
+                                                                      .read<
+                                                                        DriverProvider
+                                                                      >()
+                                                                      .drivers
+                                                                      .map((
+                                                                        driver,
+                                                                      ) {
+                                                                        return DropdownMenuItem(
+                                                                          value:
+                                                                              driver.id,
+                                                                          child: Text(
+                                                                            driver.driverName,
+                                                                          ),
+                                                                        );
+                                                                      })
+                                                                      .toList(),
+                                                                  onChanged: (value) {
+                                                                    editDriverId =
+                                                                        value;
+                                                                  },
+                                                                ),
 
-                                                            const SizedBox(
-                                                              height: 10,
-                                                            ),
+                                                                const SizedBox(
+                                                                  height: 10,
+                                                                ),
 
-                                                            TextField(
-                                                              controller:
-                                                                  platController,
-                                                              decoration:
-                                                                  const InputDecoration(
-                                                                    labelText:
-                                                                        "Plat Nomor",
-                                                                  ),
+                                                                TextField(
+                                                                  controller:
+                                                                      nomorController,
+                                                                  decoration:
+                                                                      const InputDecoration(
+                                                                        labelText:
+                                                                            "Nomor Bus",
+                                                                      ),
+                                                                ),
+
+                                                                const SizedBox(
+                                                                  height: 10,
+                                                                ),
+
+                                                                TextField(
+                                                                  controller:
+                                                                      platController,
+                                                                  decoration:
+                                                                      const InputDecoration(
+                                                                        labelText:
+                                                                            "Plat Nomor",
+                                                                      ),
+                                                                ),
+
+                                                                const SizedBox(
+                                                                  height: 10,
+                                                                ),
+
+                                                                DropdownButtonFormField<
+                                                                  int
+                                                                >(
+                                                                  initialValue:
+                                                                      editMesinId,
+                                                                  decoration:
+                                                                      const InputDecoration(
+                                                                        labelText:
+                                                                            "Mesin",
+                                                                      ),
+                                                                  items: context
+                                                                      .read<
+                                                                        MesinProvider
+                                                                      >()
+                                                                      .mesinList
+                                                                      .map((
+                                                                        mesin,
+                                                                      ) {
+                                                                        return DropdownMenuItem(
+                                                                          value:
+                                                                              mesin.id,
+                                                                          child: Text(
+                                                                            mesin.namaMesin,
+                                                                          ),
+                                                                        );
+                                                                      })
+                                                                      .toList(),
+                                                                  onChanged: (value) {
+                                                                    editMesinId =
+                                                                        value;
+                                                                  },
+                                                                ),
+
+                                                                const SizedBox(
+                                                                  height: 10,
+                                                                ),
+
+                                                                DropdownButtonFormField<
+                                                                  int
+                                                                >(
+                                                                  initialValue:
+                                                                      editRouteId,
+                                                                  decoration:
+                                                                      const InputDecoration(
+                                                                        labelText:
+                                                                            "Route",
+                                                                      ),
+                                                                  items: context
+                                                                      .read<
+                                                                        RouteProvider
+                                                                      >()
+                                                                      .routes
+                                                                      .map((
+                                                                        route,
+                                                                      ) {
+                                                                        return DropdownMenuItem(
+                                                                          value:
+                                                                              route.id,
+                                                                          child: Text(
+                                                                            route.namaRute,
+                                                                          ),
+                                                                        );
+                                                                      })
+                                                                      .toList(),
+                                                                  onChanged: (value) {
+                                                                    editRouteId =
+                                                                        value;
+                                                                  },
+                                                                ),
+
+                                                                const SizedBox(
+                                                                  height: 10,
+                                                                ),
+
+                                                                DropdownButtonFormField<
+                                                                  int
+                                                                >(
+                                                                  initialValue:
+                                                                      editScheduleId,
+                                                                  decoration:
+                                                                      const InputDecoration(
+                                                                        labelText:
+                                                                            "Schedule",
+                                                                      ),
+                                                                  items: context
+                                                                      .read<
+                                                                        ScheduleProvider
+                                                                      >()
+                                                                      .schedules
+                                                                      .map((
+                                                                        schedule,
+                                                                      ) {
+                                                                        return DropdownMenuItem(
+                                                                          value:
+                                                                              schedule.id,
+                                                                          child: Text(
+                                                                            schedule.jamBerangkat,
+                                                                          ),
+                                                                        );
+                                                                      })
+                                                                      .toList(),
+                                                                  onChanged: (value) {
+                                                                    editScheduleId =
+                                                                        value;
+                                                                  },
+                                                                ),
+
+                                                                const SizedBox(
+                                                                  height: 10,
+                                                                ),
+
+                                                                DropdownButtonFormField<
+                                                                  String
+                                                                >(
+                                                                  initialValue:
+                                                                      editStatus,
+                                                                  decoration:
+                                                                      const InputDecoration(
+                                                                        labelText:
+                                                                            "Status",
+                                                                      ),
+                                                                  items: const [
+                                                                    DropdownMenuItem(
+                                                                      value: "Aktif",
+                                                                      child: Text("🟢 Aktif"),
+                                                                    ),
+
+                                                                    DropdownMenuItem(
+                                                                      value: "Non Aktif",
+                                                                      child: Text("⚫ Non Aktif"),
+                                                                    ),
+
+                                                                    DropdownMenuItem(
+                                                                      value: "Tidak Ada Driver",
+                                                                      child: Text("🔴 Tidak Ada Driver"),
+                                                                    ),
+
+                                                                    DropdownMenuItem(
+                                                                      value: "Maintenance",
+                                                                      child: Text("🟠 Maintenance"),
+                                                                    ),
+                                                                  ],
+                                                                  onChanged: (value) {
+                                                                    editStatus =
+                                                                        value!;
+                                                                  },
+                                                                ),
+                                                              ],
                                                             ),
-                                                          ],
+                                                          ),
                                                         ),
 
                                                         actions: [
@@ -307,23 +810,105 @@ class _ArmadaScreenState extends State<ArmadaScreen> {
 
                                                           ElevatedButton(
                                                             onPressed: () async {
-                                                              await provider.editBus(
-                                                                id: bus.id,
-                                                                nomorBus:
-                                                                    nomorController
-                                                                        .text,
-                                                                platNomor:
+                                                              if (nomorController
+                                                                      .text
+                                                                      .trim()
+                                                                      .isEmpty ||
+                                                                  platController
+                                                                      .text
+                                                                      .trim()
+                                                                      .isEmpty ||
+                                                                  editDriverId ==
+                                                                      null ||
+                                                                  editMesinId ==
+                                                                      null ||
+                                                                  editRouteId ==
+                                                                      null ||
+                                                                  editScheduleId ==
+                                                                      null) {
+                                                                ScaffoldMessenger.of(
+                                                                  context,
+                                                                ).showSnackBar(
+                                                                  const SnackBar(
+                                                                    content: Text(
+                                                                      "Semua data armada wajib diisi",
+                                                                    ),
+                                                                  ),
+                                                                );
+
+                                                                return;
+                                                              }
+
+                                                              final duplicate = provider.buses.any(
+                                                                (b) =>
+                                                                    b.platNomor
+                                                                        .toLowerCase() ==
                                                                     platController
-                                                                        .text,
-                                                                status:
-                                                                    bus.status,
+                                                                        .text
+                                                                        .trim()
+                                                                        .toLowerCase(),
                                                               );
 
-                                                              if (!mounted)
+                                                              if (
+                                                                isPlatDuplicate(
+                                                                  platController.text,
+                                                                  provider,
+                                                                  bus.id,
+                                                                )
+                                                              )
+                                                              {
+                                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                                  const SnackBar(
+                                                                    content: Text(
+                                                                      "Plat nomor sudah digunakan",
+                                                                    ),
+                                                                  ),
+                                                                );
+
+                                                                return;
+                                                              }
+
+                                                              await provider.editBus(
+                                                                id: bus.id,
+                                                                companyId: bus
+                                                                    .companyId,
+                                                                driverId:
+                                                                    editDriverId,
+                                                                nomorBus:
+                                                                    nomorController
+                                                                        .text
+                                                                        .trim(),
+                                                                platNomor:
+                                                                    platController
+                                                                        .text
+                                                                        .trim(),
+                                                                mesinId:
+                                                                    editMesinId!,
+                                                                routeId:
+                                                                    editRouteId,
+                                                                scheduleId:
+                                                                    editScheduleId,
+                                                                status:
+                                                                    editStatus,
+                                                              );
+                                                              await provider.getBuses();
+
+                                                              if (!context
+                                                                  .mounted)
                                                                 return;
 
                                                               Navigator.pop(
                                                                 context,
+                                                              );
+
+                                                              ScaffoldMessenger.of(
+                                                                context,
+                                                              ).showSnackBar(
+                                                                const SnackBar(
+                                                                  content: Text(
+                                                                    "Armada berhasil diperbarui",
+                                                                  ),
+                                                                ),
                                                               );
                                                             },
                                                             child: const Text(
