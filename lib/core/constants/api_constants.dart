@@ -1,10 +1,15 @@
 import 'package:flutter/foundation.dart';
 
 class ApiConstants {
-  // static const String baseUrl =
-  //     'https://ebus-api-production.up.railway.app/api';
+
+  static const bool useRailway = true;
 
   static String get baseUrl {
+
+    if (useRailway) {
+      return "https://newebusbackend-production.up.railway.app/api";
+    }
+
     if (kIsWeb) {
       return "http://localhost:8080/api";
     }
