@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:new_ebus/providers/checkpoint_provider.dart';
 import 'package:new_ebus/providers/company_provider.dart';
 import 'package:new_ebus/providers/driver_dashboard_provider.dart';
@@ -10,20 +11,24 @@ import 'package:new_ebus/providers/route_provider.dart';
 import 'package:new_ebus/providers/schedule_provider.dart';
 import 'package:new_ebus/providers/terminal_provider.dart';
 import 'package:new_ebus/providers/user_provider.dart';
+import 'package:new_ebus/providers/monitoring_provider.dart';
+
 import 'package:provider/provider.dart';
+
 import 'providers/province_provider.dart';
 import 'providers/city_provider.dart';
-import 'package:new_ebus/providers/monitoring_provider.dart';
 import 'providers/driver_tracking_provider.dart';
-
-import 'core/routes/app_router.dart';
-import 'core/theme/app_theme.dart';
-
 import 'providers/auth_provider.dart';
 import 'providers/bus_provider.dart';
 
+import 'core/routes/app_router.dart';
+import 'core/theme/app_theme.dart';
+import 'core/socket/socket_service.dart';
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+
+  SocketService.connect();
 
   runApp(
     MultiProvider(

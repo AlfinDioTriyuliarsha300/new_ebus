@@ -5,31 +5,26 @@ import '../../../../providers/driver_tracking_provider.dart';
 class TrackingInfoCard extends StatelessWidget {
   final DriverTrackingProvider provider;
 
-  const TrackingInfoCard({
-    super.key,
-    required this.provider,
-  });
+  const TrackingInfoCard({super.key, required this.provider});
 
   @override
   Widget build(BuildContext context) {
     final tracking = provider.trackingData;
 
+    final route = tracking?.route;
+
     if (tracking == null) {
       return const Card(
         child: Padding(
           padding: EdgeInsets.all(25),
-          child: Center(
-            child: CircularProgressIndicator(),
-          ),
+          child: Center(child: CircularProgressIndicator()),
         ),
       );
     }
 
     return Card(
       elevation: 5,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
 
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -38,51 +33,27 @@ class TrackingInfoCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
 
           children: [
-
             const Text(
               "Informasi Armada",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
             ),
 
             const Divider(height: 25),
 
-            _item(
-              Icons.directions_bus,
-              "Nomor Bus",
-              tracking.bus.nomorBus,
-            ),
+            _item(Icons.directions_bus, "Nomor Bus", tracking.bus.nomorBus),
 
-            _item(
-              Icons.credit_card,
-              "Plat Nomor",
-              tracking.bus.platNomor,
-            ),
+            _item(Icons.credit_card, "Plat Nomor", tracking.bus.platNomor),
 
-            _item(
-              Icons.person,
-              "Driver",
-              tracking.driver.nama,
-            ),
+            _item(Icons.person, "Driver", tracking.driver.nama),
 
-            _item(
-              Icons.route,
-              "Rute",
-              tracking.route.nama,
-            ),
+            _item(Icons.route, "Rute", route?.nama ?? "-"),
 
-            _item(
-              Icons.flag,
-              "Terminal Awal",
-              tracking.route.terminalAwal.nama,
-            ),
+            _item(Icons.flag, "Terminal Awal", route?.terminalAwal.nama ?? "-"),
 
             _item(
               Icons.outlined_flag,
               "Terminal Tujuan",
-              tracking.route.terminalTujuan.nama,
+              route?.terminalTujuan.nama ?? "-",
             ),
 
             _item(
@@ -97,47 +68,32 @@ class TrackingInfoCard extends StatelessWidget {
               tracking.location.lng.toStringAsFixed(6),
             ),
 
-            _item(
-              Icons.info,
-              "Status Bus",
-              tracking.bus.status,
-            ),
+            _item(Icons.info, "Status Bus", tracking.bus.status),
 
             _item(
               Icons.gps_fixed,
               "Tracking",
-              tracking.bus.tracking
-                  ? "Aktif"
-                  : "Tidak Aktif",
+              tracking.bus.tracking ? "Aktif" : "Tidak Aktif",
             ),
 
             _item(
               Icons.place,
               "Jumlah Checkpoint",
-              tracking.route.checkpoints.length.toString(),
+              (route?.checkpoints.length ?? 0).toString(),
             ),
-
           ],
         ),
       ),
     );
   }
 
-  Widget _item(
-    IconData icon,
-    String title,
-    String value,
-  ) {
+  Widget _item(IconData icon, String title, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
 
       child: Row(
         children: [
-
-          Icon(
-            icon,
-            color: Colors.blue,
-          ),
+          Icon(icon, color: Colors.blue),
 
           const SizedBox(width: 15),
 
@@ -146,20 +102,11 @@ class TrackingInfoCard extends StatelessWidget {
 
             child: Text(
               title,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
 
-          Expanded(
-            flex: 3,
-
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-            ),
-          ),
+          Expanded(flex: 3, child: Text(value, textAlign: TextAlign.end)),
         ],
       ),
     );

@@ -36,9 +36,15 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
     busId = prefs.getInt("bus_id");
 
     if (busId != null) {
-      context
-          .read<DriverTrackingProvider>()
-          .startRealtime(busId!);
+
+      print("BUS ID TRACKING = $busId");
+
+      final provider =
+          context.read<DriverTrackingProvider>();
+
+      await provider.loadBusLocation(busId!);
+
+      provider.startRealtime(busId!);
     }
 
     if (mounted) {

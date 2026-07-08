@@ -4,93 +4,85 @@ import '../../models/driver_tracking_model.dart';
 import 'api_service.dart';
 
 class DriverTrackingService {
-  /*
-  ===========================================
-  GET TRACKING
-  ===========================================
-  */
 
   Future<DriverTrackingModel?> getDashboard(
     int busId,
   ) async {
-    try {
-      final response = await ApiService.dio.get(
-        "/driver/tracking/$busId",
+
+    final response =
+        await ApiService.dio.get(
+      "/driver/tracking/$busId",
+    );
+
+    if (response.data["success"] == true) {
+
+      return DriverTrackingModel.fromJson(
+        response.data["data"],
       );
 
-      if (response.data["success"] == true) {
-        return DriverTrackingModel.fromJson(
-          response.data,
-        );
-      }
-
-      return null;
-    } catch (e) {
-      print(e);
-      return null;
     }
-  }
 
-  /*
-  ===========================================
-  START TRACKING
-  ===========================================
-  */
+    return null;
+  }
 
   Future<void> startTracking(
     int driverId,
   ) async {
-    await ApiService.dio.post(
-      "/driver/tracking/start",
-      data: {
-        "driverId": driverId,
-      },
-    );
-  }
 
-  /*
-  ===========================================
-  STOP TRACKING
-  ===========================================
-  */
+    await ApiService.dio.post(
+      "/location/start/$driverId",
+    );
+
+  }
 
   Future<void> stopTracking(
     int driverId,
   ) async {
+
     await ApiService.dio.post(
-      "/driver/tracking/stop",
-      data: {
-        "driverId": driverId,
-      },
+      "/location/stop/$driverId",
     );
+
   }
 
-  /*
-  ===========================================
-  UPDATE LOCATION
-  ===========================================
-  */
+  Future<void> sendLocation({
 
-  Future<void> sendLocation(
-    int driverId,
-    double lat,
-    double lng,
-    double speed,
-  ) async {
+    required int driverId,
+
+    required double latitude,
+
+    required double longitude,
+
+    required double speed,
+
+    required double heading,
+
+    required double accuracy,
+
+  }) async {
 
     await ApiService.dio.post(
+
       "/location/update",
 
       data: {
 
         "driver_id": driverId,
 
-        "latitude": lat,
+        "latitude": latitude,
 
-        "longitude": lng,
+        "longitude": longitude,
 
         "speed": speed,
+
+        "heading": heading,
+
+        "accuracy": accuracy,
+
       },
+
     );
+
   }
+
 }
