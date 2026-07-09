@@ -31,16 +31,14 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
   Future<void> loadData() async {
     final prefs = await SharedPreferences.getInstance();
 
-    driverId = prefs.getInt(StorageKeys.userId);
+    driverId = prefs.getInt("driver_id");
 
     busId = prefs.getInt("bus_id");
 
     if (busId != null) {
-
       print("BUS ID TRACKING = $busId");
 
-      final provider =
-          context.read<DriverTrackingProvider>();
+      final provider = context.read<DriverTrackingProvider>();
 
       await provider.loadBusLocation(busId!);
 

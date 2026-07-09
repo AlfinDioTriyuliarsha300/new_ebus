@@ -5,8 +5,7 @@ import '../core/services/driver_dashboard_service.dart';
 import '../models/driver_dashboard_model.dart';
 
 class DriverDashboardProvider extends ChangeNotifier {
-  final DriverDashboardService _service =
-      DriverDashboardService();
+  final DriverDashboardService _service = DriverDashboardService();
 
   bool isLoading = false;
 
@@ -17,23 +16,16 @@ class DriverDashboardProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      dashboard =
-          await _service.getDashboard(userId);
+      dashboard = await _service.getDashboard(userId);
 
-      if (dashboard != null &&
-          dashboard!.busId != null) {
+      if (dashboard != null && dashboard!.busId != null) {
+        final prefs = await SharedPreferences.getInstance();
 
-        final prefs =
-            await SharedPreferences.getInstance();
+        await prefs.setInt("bus_id", dashboard!.busId!);
 
-        await prefs.setInt(
-          "bus_id",
-          dashboard!.busId!,
-        );
+        await prefs.setInt("driver_id", dashboard!.driverId);
 
-        print(
-          "BUS ID DISIMPAN = ${dashboard!.busId}",
-        );
+        print("BUS ID DISIMPAN = ${dashboard!.busId}");
       }
     } finally {
       isLoading = false;

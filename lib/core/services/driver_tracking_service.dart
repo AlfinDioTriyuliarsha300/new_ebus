@@ -15,13 +15,10 @@ class DriverTrackingService {
     );
 
     if (response.data["success"] == true) {
-
       return DriverTrackingModel.fromJson(
         response.data["data"],
       );
-
     }
-
     return null;
   }
 
@@ -30,9 +27,14 @@ class DriverTrackingService {
   ) async {
 
     await ApiService.dio.post(
-      "/location/start/$driverId",
-    );
 
+      "/driver/tracking/start",
+
+      data: {
+        "driver_id": driverId,
+      },
+
+    );
   }
 
   Future<void> stopTracking(
@@ -40,49 +42,39 @@ class DriverTrackingService {
   ) async {
 
     await ApiService.dio.post(
-      "/location/stop/$driverId",
-    );
 
+      "/driver/tracking/stop",
+
+      data: {
+        "driver_id": driverId,
+      },
+
+    );
   }
 
   Future<void> sendLocation({
 
     required int driverId,
-
     required double latitude,
-
     required double longitude,
-
     required double speed,
-
     required double heading,
-
     required double accuracy,
 
   }) async {
 
     await ApiService.dio.post(
 
-      "/location/update",
+    "/driver/tracking/update-location",
 
       data: {
-
         "driver_id": driverId,
-
         "latitude": latitude,
-
         "longitude": longitude,
-
         "speed": speed,
-
         "heading": heading,
-
         "accuracy": accuracy,
-
       },
-
     );
-
   }
-
 }
