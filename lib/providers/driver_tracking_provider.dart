@@ -24,15 +24,12 @@ class DriverTrackingProvider extends ChangeNotifier {
 
   StreamSubscription<Position>? _positionStream;
 
-  /*
-  ==========================
-  LOAD TRACKING
-  ==========================
-  */
+  // =========================
+  // LOAD DASHBOARD
+  // =========================
 
   Future<void> loadBusLocation(int busId) async {
     isLoading = true;
-
     notifyListeners();
 
     try {
@@ -41,7 +38,6 @@ class DriverTrackingProvider extends ChangeNotifier {
       if (trackingData != null) {
         busLocation = LatLng(
           trackingData!.location.lat,
-
           trackingData!.location.lng,
         );
       }
@@ -50,74 +46,79 @@ class DriverTrackingProvider extends ChangeNotifier {
     }
 
     isLoading = false;
-
     notifyListeners();
   }
 
-  /*
-  ==========================
-  START TRACKING
-  ==========================
-  */
+  // =========================
+  // START TRACKING
+  // =========================
 
   Future<void> startTracking(int driverId) async {
+    bool serviceEnabled =
+        await Geolocator.isLocationServiceEnabled();
+
+    if (!serviceEnabled) {
+      debugPrint("GPS belum aktif");
+      return;
+    }
+
+    LocationPermission permission =
+        await Geolocator.checkPermission();
+
+    if (permission == LocationPermission.denied) {
+      permission =
+          await Geolocator.requestPermission();
+    }
+
+    if (permission ==
+            LocationPermission.denied ||
+        permission ==
+            LocationPermission.deniedForever) {
+      debugPrint("Permission ditolak");
+      return;
+    }
+
     await _service.startTracking(driverId);
 
     isTracking = true;
 
     notifyListeners();
 
-    LocationPermission permission = await Geolocator.checkPermission();
-
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-
     _positionStream?.cancel();
 
-    _positionStream =
-        Geolocator.getPositionStream(
-          locationSettings: const LocationSettings(
-            accuracy: LocationAccuracy.best,
+    _positionStream = Geolocator.getPositionStream(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.best,
+        distanceFilter: 5,
+      ),
+    ).listen((Position position) async {
 
-            distanceFilter: 5,
-          ),
-        ).listen((Position position) async {
-          currentPosition = position;
+      currentPosition = position;
 
-          busLocation = LatLng(position.latitude, position.longitude);
+      busLocation = LatLng(
+        position.latitude,
+        position.longitude,
+      );
 
-          notifyListeners();
+      notifyListeners();
 
-          print("========== GPS ==========");
-          print(position.latitude);
-          print(position.longitude);
-          print(position.speed);
-          print(position.heading);
+      debugPrint(
+          "GPS ${position.latitude}, ${position.longitude}");
 
-          print("SEND TO SERVER");
-
-          await _service.sendLocation(
-            driverId: driverId,
-
-            latitude: position.latitude,
-
-            longitude: position.longitude,
-
-            speed: position.speed,
-
-            heading: position.heading,
-
-            accuracy: position.accuracy,
-          );
-        });
+      await _service.sendLocation(
+        driverId: driverId,
+        latitude: position.latitude,
+        longitude: position.longitude,
+        speed: position.speed,
+        heading: position.heading,
+        accuracy: position.accuracy,
+      );
+    });
   }
 
-  /*
-  ==========================
-  STOP TRACKING
-  ==========================
-  */
+  // =========================
+  // STOP TRACKING
+  // =========================
 
   Future<void> stopTracking(int driverId) async {
     await _service.stopTracking(driverId);
@@ -131,51 +132,37 @@ class DriverTrackingProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /*
-  ==========================
-  CURRENT LOCATION
-  ==========================
-  */
+  // =========================
+  // CURRENT LOCATION
+  // =========================
 
   Future<void> getCurrentLocation() async {
-    bool enabled = await Geolocator.isLocationServiceEnabled();
-
-    if (!enabled) return;
-
-    LocationPermission permission = await Geolocator.checkPermission();
-
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-
-    currentPosition = await Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(accuracy: LocationAccuracy.best),
+    currentPosition =
+        await Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.best,
+      ),
     );
 
     notifyListeners();
   }
 
-  /*
-  ==========================
-  REALTIME
-  ==========================
-  */
+  // =========================
+  // REALTIME REFRESH
+  // =========================
 
   void startRealtime(int busId) {
     _timer?.cancel();
 
     loadBusLocation(busId);
 
-    _timer = Timer.periodic(const Duration(seconds: 5), (_) {
-      loadBusLocation(busId);
-    });
+    _timer = Timer.periodic(
+      const Duration(seconds: 5),
+      (_) {
+        loadBusLocation(busId);
+      },
+    );
   }
-
-  /*
-  ==========================
-  STOP REALTIME
-  ==========================
-  */
 
   void stopRealtime() {
     _timer?.cancel();
