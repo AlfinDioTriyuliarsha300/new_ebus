@@ -8,9 +8,7 @@ import '../core/services/driver_tracking_service.dart';
 import '../models/driver_tracking_model.dart';
 
 class DriverTrackingProvider extends ChangeNotifier {
-
-  final DriverTrackingService _service =
-      DriverTrackingService();
+  final DriverTrackingService _service = DriverTrackingService();
 
   DriverTrackingModel? trackingData;
 
@@ -32,41 +30,28 @@ class DriverTrackingProvider extends ChangeNotifier {
   ==========================
   */
 
-  Future<void> loadBusLocation(
-    int busId,
-  ) async {
-
+  Future<void> loadBusLocation(int busId) async {
     isLoading = true;
 
     notifyListeners();
 
     try {
-
-      trackingData =
-          await _service.getDashboard(busId);
+      trackingData = await _service.getDashboard(busId);
 
       if (trackingData != null) {
-
         busLocation = LatLng(
-
           trackingData!.location.lat,
 
           trackingData!.location.lng,
-
         );
-
       }
-
     } catch (e) {
-
       debugPrint(e.toString());
-
     }
 
     isLoading = false;
 
     notifyListeners();
-
   }
 
   /*
@@ -75,77 +60,57 @@ class DriverTrackingProvider extends ChangeNotifier {
   ==========================
   */
 
-  Future<void> startTracking(
-    int driverId,
-  ) async {
-
+  Future<void> startTracking(int driverId) async {
     await _service.startTracking(driverId);
 
     isTracking = true;
 
     notifyListeners();
 
-    LocationPermission permission =
-        await Geolocator.checkPermission();
+    LocationPermission permission = await Geolocator.checkPermission();
 
     if (permission == LocationPermission.denied) {
-
-      permission =
-          await Geolocator.requestPermission();
-
+      permission = await Geolocator.requestPermission();
     }
 
     _positionStream?.cancel();
 
     _positionStream =
         Geolocator.getPositionStream(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.best,
 
-      locationSettings:
-          const LocationSettings(
+            distanceFilter: 5,
+          ),
+        ).listen((Position position) async {
+          currentPosition = position;
 
-        accuracy:
-            LocationAccuracy.best,
+          busLocation = LatLng(position.latitude, position.longitude);
 
-        distanceFilter: 5,
+          notifyListeners();
 
-      ),
+          print("========== GPS ==========");
+          print(position.latitude);
+          print(position.longitude);
+          print(position.speed);
+          print(position.heading);
 
-    ).listen(
+          print("SEND TO SERVER");
 
-      (Position position) async {
+          await _service.sendLocation(
+            driverId: driverId,
 
-        currentPosition = position;
+            latitude: position.latitude,
 
-        busLocation = LatLng(
+            longitude: position.longitude,
 
-          position.latitude,
+            speed: position.speed,
 
-          position.longitude,
+            heading: position.heading,
 
-        );
-
-        notifyListeners();
-
-        await _service.sendLocation(
-
-          driverId: driverId,
-
-          latitude: position.latitude,
-
-          longitude: position.longitude,
-
-          speed: position.speed,
-
-          heading: position.heading,
-
-          accuracy: position.accuracy,
-
-        );
-
-      },
-
-    );
-
+            accuracy: position.accuracy,
+          );
+        });
   }
 
   /*
@@ -154,10 +119,7 @@ class DriverTrackingProvider extends ChangeNotifier {
   ==========================
   */
 
-  Future<void> stopTracking(
-    int driverId,
-  ) async {
-
+  Future<void> stopTracking(int driverId) async {
     await _service.stopTracking(driverId);
 
     await _positionStream?.cancel();
@@ -167,7 +129,6 @@ class DriverTrackingProvider extends ChangeNotifier {
     isTracking = false;
 
     notifyListeners();
-
   }
 
   /*
@@ -177,39 +138,21 @@ class DriverTrackingProvider extends ChangeNotifier {
   */
 
   Future<void> getCurrentLocation() async {
-
-    bool enabled =
-        await Geolocator
-            .isLocationServiceEnabled();
+    bool enabled = await Geolocator.isLocationServiceEnabled();
 
     if (!enabled) return;
 
-    LocationPermission permission =
-        await Geolocator.checkPermission();
+    LocationPermission permission = await Geolocator.checkPermission();
 
-    if (permission ==
-        LocationPermission.denied) {
-
-      permission =
-          await Geolocator.requestPermission();
-
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
     }
 
-    currentPosition =
-        await Geolocator.getCurrentPosition(
-
-      locationSettings:
-          const LocationSettings(
-
-        accuracy:
-            LocationAccuracy.best,
-
-      ),
-
+    currentPosition = await Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(accuracy: LocationAccuracy.best),
     );
 
     notifyListeners();
-
   }
 
   /*
@@ -218,26 +161,14 @@ class DriverTrackingProvider extends ChangeNotifier {
   ==========================
   */
 
-  void startRealtime(
-    int busId,
-  ) {
-
+  void startRealtime(int busId) {
     _timer?.cancel();
 
     loadBusLocation(busId);
 
-    _timer = Timer.periodic(
-
-      const Duration(seconds: 5),
-
-      (_) {
-
-        loadBusLocation(busId);
-
-      },
-
-    );
-
+    _timer = Timer.periodic(const Duration(seconds: 5), (_) {
+      loadBusLocation(busId);
+    });
   }
 
   /*
@@ -247,20 +178,15 @@ class DriverTrackingProvider extends ChangeNotifier {
   */
 
   void stopRealtime() {
-
     _timer?.cancel();
-
   }
 
   @override
   void dispose() {
-
     _timer?.cancel();
 
     _positionStream?.cancel();
 
     super.dispose();
-
   }
-
 }
