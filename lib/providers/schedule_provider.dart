@@ -11,26 +11,16 @@ class ScheduleProvider extends ChangeNotifier {
 
   bool isLoading = false;
 
-  Future<void> getSchedules(
-    int companyId,
-  ) async {
-
-    print(
-      "LOAD SCHEDULE COMPANY = $companyId"
-    );
+  Future<void> getSchedules(int companyId) async {
+    print("LOAD SCHEDULE COMPANY = $companyId");
 
     isLoading = true;
 
     notifyListeners();
 
-    schedules =
-        await _service.getSchedules(
-          companyId,
-        );
+    schedules = await _service.getSchedules(companyId);
 
-    print(
-      "TOTAL SCHEDULE = ${schedules.length}"
-    );
+    print("TOTAL SCHEDULE = ${schedules.length}");
 
     isLoading = false;
 
@@ -45,7 +35,6 @@ class ScheduleProvider extends ChangeNotifier {
     required String jam,
     required String harga,
   }) async {
-
     await _service.createSchedule(
       companyId: companyId,
       busId: busId,
@@ -61,13 +50,18 @@ class ScheduleProvider extends ChangeNotifier {
   Future<void> updateSchedule({
     required int id,
     required int companyId,
+    required int busId,
+    required int routeId,
     required String tanggal,
     required String jam,
     required String harga,
+
   }) async {
 
     await _service.updateSchedule(
       id: id,
+      busId: busId,
+      routeId: routeId,
       tanggal: tanggal,
       jam: jam,
       harga: harga,
@@ -76,11 +70,7 @@ class ScheduleProvider extends ChangeNotifier {
     await getSchedules(companyId);
   }
 
-  Future<void> deleteSchedule(
-    int id,
-    int companyId,
-  ) async {
-
+  Future<void> deleteSchedule(int id, int companyId) async {
     await _service.deleteSchedule(id);
 
     await getSchedules(companyId);

@@ -325,6 +325,7 @@ class _ScheduleManagementScreenState extends State<ScheduleManagementScreen> {
                                         showDialog(
                                           context: context,
                                           builder: (dialogContext) {
+                                            int? selectedBusId = schedule.busId;
                                             return AlertDialog(
                                               title: const Text("Edit Jadwal"),
                                               content: SizedBox(
@@ -333,6 +334,35 @@ class _ScheduleManagementScreenState extends State<ScheduleManagementScreen> {
                                                   mainAxisSize:
                                                       MainAxisSize.min,
                                                   children: [
+                                                    DropdownButtonFormField<
+                                                      int
+                                                    >(
+                                                      value: selectedBusId,
+
+                                                      decoration:
+                                                          const InputDecoration(
+                                                            labelText:
+                                                                "No Plat",
+                                                          ),
+
+                                                      items: busProvider.buses.map((
+                                                        bus,
+                                                      ) {
+                                                        return DropdownMenuItem(
+                                                          value: bus.id,
+                                                          child: Text(
+                                                            bus.platNomor,
+                                                          ),
+                                                        );
+                                                      }).toList(),
+
+                                                      onChanged: (value) {
+                                                        selectedBusId = value;
+                                                      },
+                                                    ),
+
+                                                    const SizedBox(height: 10),
+
                                                     TextField(
                                                       controller:
                                                           tanggalController,
@@ -382,15 +412,48 @@ class _ScheduleManagementScreenState extends State<ScheduleManagementScreen> {
 
                                                 ElevatedButton(
                                                   onPressed: () async {
+                                                    if (selectedBusId == null) {
+                                                      return;
+                                                    }
+
+                                                    final bus = busProvider
+                                                        .buses
+                                                        .firstWhere(
+                                                          (e) =>
+                                                              e.id ==
+                                                              selectedBusId,
+                                                        );
+
+                                                    if (bus.routeId == null) {
+                                                      ScaffoldMessenger.of(
+                                                        context,
+                                                      ).showSnackBar(
+                                                        const SnackBar(
+                                                          content: Text(
+                                                            "Bus belum memiliki rute",
+                                                          ),
+                                                        ),
+                                                      );
+                                                      return;
+                                                    }
+
                                                     await scheduleProvider
                                                         .updateSchedule(
                                                           id: schedule.id,
+
                                                           companyId: companyId,
+
+                                                          busId: bus.id,
+
+                                                          routeId: bus.routeId!,
+
                                                           tanggal:
                                                               tanggalController
                                                                   .text,
+
                                                           jam: jamController
                                                               .text,
+
                                                           harga: hargaController
                                                               .text,
                                                         );
