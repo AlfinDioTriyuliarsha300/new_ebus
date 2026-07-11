@@ -62,6 +62,10 @@ class _TrackingMapState extends State<TrackingMap> {
         ),
       );
     });
+
+    if (widget.provider.busLocation != null) {
+      points.add(widget.provider.busLocation!);
+    }
   }
 
   @override
@@ -93,6 +97,27 @@ class _TrackingMapState extends State<TrackingMap> {
   Widget build(BuildContext context) {
     final tracking = widget.provider.trackingData;
 
+    Color busColor = Colors.blue;
+
+    if (tracking != null) {
+      switch (tracking.bus.status) {
+        case "Siap Berangkat":
+          busColor = Colors.green;
+          break;
+
+        case "Perjalanan":
+          busColor = Colors.blue;
+          break;
+
+        case "Selesai":
+          busColor = Colors.red;
+          break;
+
+        default:
+          busColor = Colors.orange;
+      }
+    }
+
     final center =
         widget.provider.busLocation ?? const LatLng(-7.983908, 112.621391);
 
@@ -117,15 +142,65 @@ class _TrackingMapState extends State<TrackingMap> {
               Polyline(
                 strokeWidth: 6,
 
-                color: (tracking?.bus.status.toLowerCase() == "aktif")
+                color: tracking!.bus.status == "Siap Berangkat"
                     ? Colors.green
-                    : (tracking?.bus.status.toLowerCase() == "offline")
-                    ? Colors.red
-                    : Colors.orange,
+                    : tracking.bus.status == "Perjalanan"
+                        ? Colors.blue
+                        : tracking.bus.status == "Selesai"
+                            ? Colors.red
+                            : Colors.orange,
 
-                points: tracking!.route!.path
+                points: tracking.route!.path
                     .map((e) => LatLng(e.lat, e.lng))
                     .toList(),
+              ),
+            ],
+          ),
+
+        //---------------------------------------
+        // GEOFENCE
+        //---------------------------------------
+        if (tracking?.route != null)
+          CircleLayer(
+            circles: [
+              CircleMarker(
+                point: LatLng(
+                  tracking!.route!.terminalAwal.lat,
+                  tracking.route!.terminalAwal.lng,
+                ),
+                radius: 200,
+                useRadiusInMeter: true,
+                color: Colors.green.withValues(alpha: .20),
+                borderColor: Colors.green,
+                borderStrokeWidth: 2,
+              ),
+
+              CircleMarker(
+                point: LatLng(
+                  tracking.route!.terminalTujuan.lat,
+                  tracking.route!.terminalTujuan.lng,
+                ),
+                radius: 200,
+                useRadiusInMeter: true,
+                color: Colors.red.withValues(alpha: .20),
+                borderColor: Colors.red,
+                borderStrokeWidth: 2,
+              ),
+
+              ...tracking.route!.checkpoints.map(
+                (cp) => CircleMarker(
+                  point: LatLng(cp.lat, cp.lng),
+
+                  radius: 200,
+
+                  useRadiusInMeter: true,
+
+                  color: Colors.orange.withValues(alpha: .15),
+
+                  borderColor: Colors.orange,
+
+                  borderStrokeWidth: 2,
+                ),
               ),
             ],
           ),
@@ -228,22 +303,41 @@ class _TrackingMapState extends State<TrackingMap> {
                       ],
                     ),
 
-                    child: Stack(
-                      alignment: Alignment.center,
+                    child: Column(
                       children: [
                         Container(
-                          width: 48,
-                          height: 48,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+
                           decoration: BoxDecoration(
-                            color: Colors.blue.withValues(alpha: .20),
-                            shape: BoxShape.circle,
+                            color: Colors.white,
+
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+
+                          child: Text(
+                            tracking?.location.currentZone ?? "-",
+
+                            style: const TextStyle(
+                              fontSize: 10,
+
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
 
-                        const Icon(
-                          Icons.directions_bus,
-                          color: Colors.blue,
-                          size: 38,
+                        const SizedBox(height: 5),
+
+                        Expanded(
+                          child: Stack(
+                            alignment: Alignment.center,
+
+                            children: [
+                              // isi Stack lama kamu di sini
+                            ],
+                          ),
                         ),
                       ],
                     ),

@@ -71,6 +71,30 @@ class TrackingInfoCard extends StatelessWidget {
             _item(Icons.info, "Status Bus", tracking.bus.status),
 
             _item(
+              Icons.location_pin,
+              "Zona Saat Ini",
+              tracking.location.currentZone,
+            ),
+
+            _item(
+              Icons.map,
+              "Status Zona",
+              tracking.location.currentZoneStatus,
+            ),
+
+            _item(
+              Icons.alt_route,
+              "Route Index",
+              tracking.location.routeIndex.toString(),
+            ),
+
+            _item(
+              Icons.speed,
+              "Kecepatan",
+              "${tracking.location.speed.toStringAsFixed(1)} km/jam",
+            ),
+
+            _item(
               Icons.gps_fixed,
               "Tracking",
               tracking.bus.tracking ? "Aktif" : "Tidak Aktif",
@@ -80,6 +104,31 @@ class TrackingInfoCard extends StatelessWidget {
               Icons.place,
               "Jumlah Checkpoint",
               (route?.checkpoints.length ?? 0).toString(),
+            ),
+
+            const SizedBox(height: 15),
+
+            const Text(
+              "Progress Perjalanan",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+
+            const SizedBox(height: 10),
+
+            LinearProgressIndicator(
+              minHeight: 8,
+              borderRadius: BorderRadius.circular(20),
+              value: tracking.location.progress / 100,
+            ),
+
+            const SizedBox(height: 8),
+
+            Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                "${tracking.location.progress.toStringAsFixed(1)} %",
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         ),

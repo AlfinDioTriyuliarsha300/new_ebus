@@ -39,25 +39,37 @@ class BusTracking {
   final String status;
   final bool tracking;
 
+  // ==========================
+  // TAMBAHAN
+  // ==========================
+  final String currentZone;
+  final String currentZoneStatus;
+  final int routeIndex;
+  final double progress;
+
   BusTracking({
     required this.id,
     required this.nomorBus,
     required this.platNomor,
     required this.status,
     required this.tracking,
+    required this.currentZone,
+    required this.currentZoneStatus,
+    required this.routeIndex,
+    required this.progress,
   });
 
   factory BusTracking.fromJson(Map<String, dynamic> json) {
     return BusTracking(
       id: json["id"] ?? 0,
-
       nomorBus: json["nomor_bus"] ?? "",
-
       platNomor: json["plat_nomor"] ?? "",
-
       status: json["status"] ?? "",
-
       tracking: json["tracking"] ?? false,
+      currentZone: json["current_zone"] ?? "",
+      currentZoneStatus: json["current_zone_status"] ?? "",
+      routeIndex: json["route_index"] ?? 0,
+      progress: double.tryParse(json["progress"].toString()) ?? 0,
     );
   }
 }
@@ -80,35 +92,80 @@ class DriverTracking {
 class LocationTracking {
   final double lat;
   final double lng;
-
   final double speed;
   final double heading;
   final double accuracy;
+  final double progress;
 
   final String updatedAt;
+  final String currentZone;
+  final String currentZoneStatus;
+
+  final int routeIndex;
 
   LocationTracking({
     required this.lat,
     required this.lng,
+
     required this.speed,
     required this.heading,
     required this.accuracy,
+
     required this.updatedAt,
+
+    required this.currentZone,
+    required this.currentZoneStatus,
+
+    required this.progress,
+    required this.routeIndex,
   });
 
-  factory LocationTracking.fromJson(Map<String, dynamic> json) {
+  factory LocationTracking.fromJson(
+    Map<String,dynamic> json){
+
     return LocationTracking(
-      lat: (json["lat"] ?? 0).toDouble(),
 
-      lng: (json["lng"] ?? 0).toDouble(),
+      lat:
+        double.tryParse(
+          json["lat"].toString(),
+        ) ?? 0,
 
-      speed: (json["speed"] ?? 0).toDouble(),
+      lng:
+        double.tryParse(
+          json["lng"].toString(),
+        ) ?? 0,
 
-      heading: (json["heading"] ?? 0).toDouble(),
+      speed:
+        double.tryParse(
+          json["speed"].toString(),
+        ) ?? 0,
 
-      accuracy: (json["accuracy"] ?? 0).toDouble(),
+      heading:
+        double.tryParse(
+          json["heading"].toString(),
+        ) ?? 0,
 
-      updatedAt: json["updated_at"]?.toString() ?? "",
+      accuracy:
+        double.tryParse(
+          json["accuracy"].toString(),
+        ) ?? 0,
+
+      updatedAt:
+        json["updated_at"]?.toString() ?? "",
+
+      currentZone:
+        json["current_zone"] ?? "-",
+
+      currentZoneStatus:
+        json["current_zone_status"] ?? "-",
+
+      progress:
+        double.tryParse(
+          json["progress"].toString(),
+        ) ?? 0,
+
+      routeIndex:
+        json["route_index"] ?? 0,
     );
   }
 }
@@ -168,9 +225,9 @@ class RoutePoint {
 
   factory RoutePoint.fromJson(Map<String, dynamic> json) {
     return RoutePoint(
-      lat: (json["lat"] ?? 0).toDouble(),
+      lat: double.tryParse(json["lat"].toString()) ?? 0.0,
 
-      lng: (json["lng"] ?? 0).toDouble(),
+      lng: double.tryParse(json["lng"].toString()) ?? 0.0,
     );
   }
 }
@@ -188,9 +245,9 @@ class TerminalAwal {
     return TerminalAwal(
       nama: json["nama"] ?? "",
 
-      lat: (json["lat"] ?? 0).toDouble(),
+      lat: double.tryParse(json["lat"].toString()) ?? 0.0,
 
-      lng: (json["lng"] ?? 0).toDouble(),
+      lng: double.tryParse(json["lng"].toString()) ?? 0.0,
     );
   }
 }
@@ -208,9 +265,9 @@ class TerminalTujuan {
     return TerminalTujuan(
       nama: json["nama"] ?? "",
 
-      lat: (json["lat"] ?? 0).toDouble(),
+      lat: double.tryParse(json["lat"].toString()) ?? 0.0,
 
-      lng: (json["lng"] ?? 0).toDouble(),
+      lng: double.tryParse(json["lng"].toString()) ?? 0.0,
     );
   }
 }
@@ -237,9 +294,9 @@ class CheckpointTracking {
 
       nama: json["nama"] ?? "",
 
-      lat: (json["lat"] ?? 0).toDouble(),
+      lat: double.tryParse(json["lat"].toString()) ?? 0.0,
 
-      lng: (json["lng"] ?? 0).toDouble(),
+      lng: double.tryParse(json["lng"].toString()) ?? 0.0,
     );
   }
 }
