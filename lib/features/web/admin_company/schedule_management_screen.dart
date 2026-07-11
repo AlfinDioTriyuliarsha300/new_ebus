@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import 'package:new_ebus/features/web/admin_company/widgets/sidebar.dart';
 import 'package:new_ebus/providers/bus_provider.dart';
@@ -155,20 +156,76 @@ class _ScheduleManagementScreenState extends State<ScheduleManagementScreen> {
 
                                           TextField(
                                             controller: tanggalController,
+                                            readOnly: true,
 
                                             decoration: const InputDecoration(
-                                              labelText: "Tanggal (YYYY-MM-DD)",
+                                              labelText: "Tanggal Berangkat",
+                                              suffixIcon: Icon(Icons.calendar_today),
                                             ),
+
+                                            onTap: () async {
+
+                                              final DateTime? date =
+                                                  await showDatePicker(
+
+                                                context: context,
+
+                                                initialDate: DateTime.now(),
+
+                                                firstDate: DateTime.now(),
+
+                                                lastDate: DateTime(2100),
+                                              );
+
+                                              if (date != null) {
+
+                                                tanggalController.text =
+                                                    DateFormat(
+                                                      'yyyy-MM-dd',
+                                                    ).format(date);
+                                              }
+                                            },
                                           ),
 
                                           const SizedBox(height: 10),
 
                                           TextField(
                                             controller: jamController,
+                                            readOnly: true,
 
                                             decoration: const InputDecoration(
-                                              labelText: "Jam (HH:MM)",
+                                              labelText: "Jam Berangkat",
+                                              suffixIcon: Icon(Icons.access_time),
                                             ),
+
+                                            onTap: () async {
+
+                                              final TimeOfDay? time =
+                                                  await showTimePicker(
+
+                                                context: context,
+
+                                                initialTime: TimeOfDay.now(),
+                                              );
+
+                                              if (time != null) {
+
+                                                final now = DateTime.now();
+
+                                                final date = DateTime(
+                                                  now.year,
+                                                  now.month,
+                                                  now.day,
+                                                  time.hour,
+                                                  time.minute,
+                                                );
+
+                                                jamController.text =
+                                                    DateFormat(
+                                                      'HH:mm:ss',
+                                                    ).format(date);
+                                              }
+                                            },
                                           ),
 
                                           const SizedBox(height: 10),
@@ -364,25 +421,50 @@ class _ScheduleManagementScreenState extends State<ScheduleManagementScreen> {
                                                     const SizedBox(height: 10),
 
                                                     TextField(
-                                                      controller:
-                                                          tanggalController,
+                                                      controller: tanggalController,
+                                                      readOnly: true,
+                                                      decoration: const InputDecoration(
+                                                        labelText: "Tanggal Berangkat",
+                                                        suffixIcon: Icon(Icons.calendar_today),
+                                                      ),
+                                                      onTap: () async {
+                                                        final date = await showDatePicker(
+                                                          context: context,
+                                                          initialDate: DateTime.now(),
+                                                          firstDate: DateTime.now(),
+                                                          lastDate: DateTime(2100),
+                                                        );
 
-                                                      decoration:
-                                                          const InputDecoration(
-                                                            labelText:
-                                                                "Tanggal",
-                                                          ),
+                                                        if (date != null) {
+                                                          tanggalController.text =
+                                                              "${date.year.toString().padLeft(4, '0')}-"
+                                                              "${date.month.toString().padLeft(2, '0')}-"
+                                                              "${date.day.toString().padLeft(2, '0')}";
+                                                        }
+                                                      },
                                                     ),
 
                                                     const SizedBox(height: 10),
 
                                                     TextField(
                                                       controller: jamController,
+                                                      readOnly: true,
+                                                      decoration: const InputDecoration(
+                                                        labelText: "Jam Berangkat",
+                                                        suffixIcon: Icon(Icons.access_time),
+                                                      ),
+                                                      onTap: () async {
+                                                        final time = await showTimePicker(
+                                                          context: context,
+                                                          initialTime: TimeOfDay.now(),
+                                                        );
 
-                                                      decoration:
-                                                          const InputDecoration(
-                                                            labelText: "Jam",
-                                                          ),
+                                                        if (time != null) {
+                                                          jamController.text =
+                                                              "${time.hour.toString().padLeft(2, '0')}:"
+                                                              "${time.minute.toString().padLeft(2, '0')}:00";
+                                                        }
+                                                      },
                                                     ),
 
                                                     const SizedBox(height: 10),

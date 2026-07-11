@@ -43,6 +43,14 @@ class ScheduleService {
     required String jam,
     required String harga,
   }) async {
+    print({
+      "bus_id": busId,
+      "route_id": routeId,
+      "tanggal": tanggal,
+      "jam": jam,
+      "harga": harga,
+    });
+
     await ApiService.dio.put(
       "/schedules/$id",
 
