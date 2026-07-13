@@ -73,13 +73,17 @@ class TrackingInfoCard extends StatelessWidget {
             _item(
               Icons.location_pin,
               "Zona Saat Ini",
-              tracking.location.currentZone,
+              tracking.location.currentZone.isEmpty
+                  ? "-"
+                  : tracking.location.currentZone,
             ),
 
             _item(
               Icons.map,
               "Status Zona",
-              tracking.location.currentZoneStatus,
+              tracking.location.currentZoneStatus.isEmpty
+                  ? "-"
+                  : tracking.location.currentZoneStatus,
             ),
 
             _item(
@@ -91,7 +95,7 @@ class TrackingInfoCard extends StatelessWidget {
             _item(
               Icons.speed,
               "Kecepatan",
-              "${tracking.location.speed.toStringAsFixed(1)} km/jam",
+              "${tracking.location.speed < 0 ? 0 : tracking.location.speed.toStringAsFixed(1)} km/jam",
             ),
 
             _item(
@@ -103,7 +107,7 @@ class TrackingInfoCard extends StatelessWidget {
             _item(
               Icons.place,
               "Jumlah Checkpoint",
-              (route?.checkpoints.length ?? 0).toString(),
+              route == null ? "-" : route.checkpoints.length.toString(),
             ),
 
             const SizedBox(height: 15),
@@ -118,7 +122,7 @@ class TrackingInfoCard extends StatelessWidget {
             LinearProgressIndicator(
               minHeight: 8,
               borderRadius: BorderRadius.circular(20),
-              value: tracking.location.progress / 100,
+              value: (tracking.location.progress / 100).clamp(0.0, 1.0),
             ),
 
             const SizedBox(height: 8),

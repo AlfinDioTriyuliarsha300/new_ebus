@@ -53,11 +53,14 @@ class _TrackingMapState extends State<TrackingMap> {
 
     if (points.isEmpty) return;
 
+    if (widget.provider.busLocation != null) {
+      points.add(widget.provider.busLocation!);
+    }
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _mapController.fitCamera(
         CameraFit.coordinates(
           coordinates: points,
-
           padding: const EdgeInsets.all(70),
         ),
       );
@@ -76,19 +79,17 @@ class _TrackingMapState extends State<TrackingMap> {
 
     final bus = widget.provider.busLocation;
 
-    if (tracking != null && _isFirstLoad) {
-      _isFirstLoad = false;
-      _fitRoute();
-      return;
-    }
+    if (tracking != null && tracking.route != null && _isFirstLoad) {
+      if (bus != null) {
+        if (_lastPosition == null ||
+            _lastPosition!.latitude != bus.latitude ||
+            _lastPosition!.longitude != bus.longitude) {
+          _lastPosition = bus;
 
-    if (bus != null) {
-      if (_lastPosition == null || _lastPosition != bus) {
-        _lastPosition = bus;
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _mapController.move(bus, _mapController.camera.zoom);
-        });
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _mapController.move(bus, _mapController.camera.zoom);
+          });
+        }
       }
     }
   }
@@ -145,10 +146,10 @@ class _TrackingMapState extends State<TrackingMap> {
                 color: tracking!.bus.status == "Siap Berangkat"
                     ? Colors.green
                     : tracking.bus.status == "Perjalanan"
-                        ? Colors.blue
-                        : tracking.bus.status == "Selesai"
-                            ? Colors.red
-                            : Colors.orange,
+                    ? Colors.blue
+                    : tracking.bus.status == "Selesai"
+                    ? Colors.red
+                    : Colors.orange,
 
                 points: tracking.route!.path
                     .map((e) => LatLng(e.lat, e.lng))
@@ -333,9 +334,21 @@ class _TrackingMapState extends State<TrackingMap> {
                         Expanded(
                           child: Stack(
                             alignment: Alignment.center,
-
                             children: [
-                              // isi Stack lama kamu di sini
+                              Icon(
+                                Icons.directions_bus,
+                                color: busColor,
+                                size: 36,
+                              ),
+
+                              Positioned(
+                                top: 2,
+                                child: Icon(
+                                  Icons.navigation,
+                                  color: Colors.white,
+                                  size: 14,
+                                ),
+                              ),
                             ],
                           ),
                         ),
