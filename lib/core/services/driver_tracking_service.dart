@@ -22,19 +22,21 @@ class DriverTrackingService {
     return null;
   }
 
-  Future<void> startTracking(
-    int driverId,
-  ) async {
+  Future<void> startTracking(int driverId) async {
+    try {
+      final response = await ApiService.dio.post(
+        "/driver/tracking/start",
+        data: {
+          "driver_id": driverId,
+        },
+      );
 
-    await ApiService.dio.post(
-
-      "/driver/tracking/start",
-
-      data: {
-        "driver_id": driverId,
-      },
-
-    );
+      print(response.data);
+    } on DioException catch (e) {
+      print("STATUS = ${e.response?.statusCode}");
+      print("DATA = ${e.response?.data}");
+      rethrow;
+    }
   }
 
   Future<void> stopTracking(
