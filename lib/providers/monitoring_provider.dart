@@ -1,30 +1,52 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 
 import '../core/services/monitoring_service.dart';
 import '../models/bus_location_model.dart';
 
-class MonitoringProvider
-    extends ChangeNotifier {
+class MonitoringProvider extends ChangeNotifier {
+  final MonitoringService _service = MonitoringService();
 
-  final MonitoringService _service =
-      MonitoringService();
+  bool isLoading = false;
 
-  bool isLoading=false;
+  List<BusLocationModel> buses = [];
 
-  List<BusLocationModel> buses=[];
+  Timer? _timer;
 
-  Future<void> getLocations(
-      int companyId) async {
+  Future<void> getLocations(int companyId, {bool refresh = false}) async {
+    if (!refresh) {
+      isLoading = true;
 
-    isLoading=true;
+      notifyListeners();
+    }
+
+    buses = await _service.getLocations(companyId);
+
+    if (!refresh) {
+      isLoading = false;
+    }
+
     notifyListeners();
+  }
 
-    buses =
-      await _service.getLocations(
-        companyId
-      );
+  void startRealtime(int companyId) {
+    _timer?.cancel();
 
-    isLoading=false;
-    notifyListeners();
+    getLocations(companyId);
+
+    _timer = Timer.periodic(const Duration(seconds: 2), (_) {
+      getLocations(companyId);
+    });
+  }
+
+  void stopRealtime() {
+    _timer?.cancel();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+
+    super.dispose();
   }
 }

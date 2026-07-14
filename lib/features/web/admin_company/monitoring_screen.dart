@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
@@ -20,9 +22,12 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
   int companyId = 0;
   int? selectedBusId;
 
+  Timer? _refreshTimer;
+
   RouteModel? selectedRoute;
 
   final RouteService routeService = RouteService();
+  final MapController mapController = MapController();
 
   @override
   void initState() {
@@ -35,7 +40,20 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
 
       if (!mounted) return;
 
-      await context.read<MonitoringProvider>().getLocations(companyId);
+      final provider = context.read<MonitoringProvider>();
+
+      await provider.getLocations(companyId);
+
+      provider.startRealtime(companyId);
+
+      _refreshTimer = Timer.periodic(const Duration(seconds: 2), (_) async {
+        if (!mounted) return;
+
+        await context.read<MonitoringProvider>().getLocations(
+          companyId,
+          refresh: true,
+        );
+      });
     });
   }
 
@@ -102,6 +120,20 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
                     return const Center(child: CircularProgressIndicator());
                   }
 
+                  if (selectedBusId != null) {
+                    final bus = provider.buses.firstWhere(
+                      (e) => e.id == selectedBusId,
+                    );
+
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      mapController.move(
+                        LatLng(bus.latitude, bus.longitude),
+
+                        mapController.camera.zoom,
+                      );
+                    });
+                  }
+
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
 
@@ -164,6 +196,7 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
                       Expanded(
                         child: Card(
                           child: FlutterMap(
+                            mapController: mapController,
                             options: MapOptions(
                               initialCenter: const LatLng(-7.2575, 112.7521),
 
@@ -329,36 +362,24 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
                                     ),
 
                                   // MARKER BUS
-                                  ...provider.buses
-                                      .where((bus) {
-                                        if (selectedBusId == null) {
-                                          return true;
-                                        }
+                                  ...provider.buses.map((bus) {
+                                    return Marker(
+                                      point: LatLng(
+                                        bus.latitude,
+                                        bus.longitude,
+                                      ),
 
-                                        return bus.id == selectedBusId;
-                                      })
-                                      .map(
-                                        (bus) => Marker(
-                                          point: LatLng(
-                                            bus.latitude,
-                                            bus.longitude,
-                                          ),
+                                      child: Tooltip(
+                                        message: bus.platNomor,
 
-                                          width: 120,
-                                          height: 80,
+                                        child: Icon(
+                                          Icons.directions_bus,
 
-                                          child: Tooltip(
-                                            message: bus.platNomor,
-
-                                            child: const Icon(
-                                              Icons.directions_bus,
-                                              size: 40,
-                                              color: Colors.blue,
-                                            ),
-                                          ),
+                                          size: 40,
                                         ),
-                                      )
-                                      .toList(),
+                                      ),
+                                    );
+                                  }).toList(),
                                 ],
                               ),
                             ],
@@ -374,5 +395,12 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    context.read<MonitoringProvider>().stopRealtime();
+    super.dispose();
   }
 }
