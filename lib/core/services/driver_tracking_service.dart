@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 
 import '../../models/driver_tracking_model.dart';
 import 'api_service.dart';
@@ -55,28 +56,43 @@ class DriverTrackingService {
   }
 
   Future<void> sendLocation({
-
     required int driverId,
     required double latitude,
     required double longitude,
     required double speed,
     required double heading,
     required double accuracy,
-
   }) async {
 
-    await ApiService.dio.post(
+    debugPrint("==================================");
+    debugPrint("SEND LOCATION");
+    debugPrint("Driver : $driverId");
+    debugPrint("Lat    : $latitude");
+    debugPrint("Lng    : $longitude");
+    debugPrint("Speed  : $speed");
 
-    "/driver/tracking/update-location",
+    try {
 
-      data: {
-        "driver_id": driverId,
-        "latitude": latitude,
-        "longitude": longitude,
-        "speed": speed,
-        "heading": heading,
-        "accuracy": accuracy,
-      },
-    );
+      final response = await ApiService.dio.post(
+        "/driver/tracking/update-location",
+        data: {
+          "driver_id": driverId,
+          "latitude": latitude,
+          "longitude": longitude,
+          "speed": speed,
+          "heading": heading,
+          "accuracy": accuracy,
+        },
+      );
+
+      debugPrint("SERVER RESPONSE");
+      debugPrint(response.data.toString());
+
+    } catch (e) {
+
+      debugPrint("ERROR SEND LOCATION");
+      debugPrint(e.toString());
+
+    }
   }
 }

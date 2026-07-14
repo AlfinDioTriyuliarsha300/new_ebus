@@ -53,30 +53,22 @@ class DriverTrackingProvider extends ChangeNotifier {
   // START TRACKING
   // =========================
 
-  Future<void> startTracking(
-    int driverId,
-    int busId,
-  ) async {
-    bool serviceEnabled =
-        await Geolocator.isLocationServiceEnabled();
+  Future<void> startTracking(int driverId, int busId) async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
 
     if (!serviceEnabled) {
       debugPrint("GPS belum aktif");
       return;
     }
 
-    LocationPermission permission =
-        await Geolocator.checkPermission();
+    LocationPermission permission = await Geolocator.checkPermission();
 
     if (permission == LocationPermission.denied) {
-      permission =
-          await Geolocator.requestPermission();
+      permission = await Geolocator.requestPermission();
     }
 
-    if (permission ==
-            LocationPermission.denied ||
-        permission ==
-            LocationPermission.deniedForever) {
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
       debugPrint("Permission ditolak");
       return;
     }
@@ -89,29 +81,44 @@ class DriverTrackingProvider extends ChangeNotifier {
 
     _positionStream?.cancel();
 
-    _positionStream = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.best,
-        distanceFilter: 5,
-      ),
-    ).listen((Position position) async {
+    _positionStream =
+        Geolocator.getPositionStream(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.best,
+            distanceFilter: 0,
+          ),
+        ).listen((Position position) async {
+          debugPrint("==============================");
 
-      currentPosition = position;
+          debugPrint("GPS UPDATE");
 
-      notifyListeners();
+          debugPrint(position.latitude.toString());
 
-      await _service.sendLocation(
-        driverId: driverId,
-        latitude: position.latitude,
-        longitude: position.longitude,
-        speed: position.speed,
-        heading: position.heading,
-        accuracy: position.accuracy,
-      );
+          debugPrint(position.longitude.toString());
 
-      // opsional: langsung refresh setelah backend selesai update
-      await loadBusLocation(busId);
-    });
+          debugPrint(position.speed.toString());
+
+          currentPosition = position;
+
+          notifyListeners();
+
+          debugPrint("SEND GPS");
+          debugPrint(position.latitude.toString());
+          debugPrint(position.longitude.toString());
+
+          await _service.sendLocation(
+            driverId: driverId,
+            latitude: position.latitude,
+            longitude: position.longitude,
+            speed: position.speed,
+            heading: position.heading,
+            accuracy: position.accuracy,
+          );
+
+          debugPrint("LOCATION SENT");
+
+          await loadBusLocation(busId);
+        });
   }
 
   // =========================
@@ -135,11 +142,8 @@ class DriverTrackingProvider extends ChangeNotifier {
   // =========================
 
   Future<void> getCurrentLocation() async {
-    currentPosition =
-        await Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.best,
-      ),
+    currentPosition = await Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(accuracy: LocationAccuracy.best),
     );
 
     notifyListeners();
@@ -154,12 +158,9 @@ class DriverTrackingProvider extends ChangeNotifier {
 
     loadBusLocation(busId);
 
-    _timer = Timer.periodic(
-      const Duration(seconds: 5),
-      (_) {
-        loadBusLocation(busId);
-      },
-    );
+    _timer = Timer.periodic(const Duration(seconds: 5), (_) {
+      loadBusLocation(busId);
+    });
   }
 
   void stopRealtime() {

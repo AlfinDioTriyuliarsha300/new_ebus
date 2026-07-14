@@ -45,15 +45,6 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
       await provider.getLocations(companyId);
 
       provider.startRealtime(companyId);
-
-      _refreshTimer = Timer.periodic(const Duration(seconds: 2), (_) async {
-        if (!mounted) return;
-
-        await context.read<MonitoringProvider>().getLocations(
-          companyId,
-          refresh: true,
-        );
-      });
     });
   }
 
@@ -121,17 +112,22 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
                   }
 
                   if (selectedBusId != null) {
-                    final bus = provider.buses.firstWhere(
+                    final index = provider.buses.indexWhere(
                       (e) => e.id == selectedBusId,
                     );
 
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      mapController.move(
-                        LatLng(bus.latitude, bus.longitude),
+                    if (index != -1) {
+                      final bus = provider.buses[index];
 
-                        mapController.camera.zoom,
-                      );
-                    });
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (!mounted) return;
+
+                        mapController.move(
+                          LatLng(bus.latitude, bus.longitude),
+                          mapController.camera.zoom,
+                        );
+                      });
+                    }
                   }
 
                   return Column(
@@ -399,7 +395,6 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
 
   @override
   void dispose() {
-    _refreshTimer?.cancel();
     context.read<MonitoringProvider>().stopRealtime();
     super.dispose();
   }

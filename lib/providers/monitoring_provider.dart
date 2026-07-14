@@ -35,7 +35,7 @@ class MonitoringProvider extends ChangeNotifier {
     getLocations(companyId);
 
     _timer = Timer.periodic(const Duration(seconds: 2), (_) {
-      getLocations(companyId);
+      getLocations(companyId, refresh: true);
     });
   }
 

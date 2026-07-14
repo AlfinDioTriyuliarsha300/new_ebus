@@ -1,26 +1,40 @@
-import '../../models/bus_location_model.dart';
-import 'api_service.dart';
 import 'package:flutter/material.dart';
 
+import '../../models/bus_location_model.dart';
+import 'api_service.dart';
+
 class MonitoringService {
+
   Future<List<BusLocationModel>> getLocations(int companyId) async {
-    final response = await ApiService.dio.get("/buses/company/$companyId");
 
-    debugPrint(response.data);
+    final response =
+        await ApiService.dio.get(
+      "/buses/company/$companyId",
+    );
 
-    final List data = response.data["data"];
+    debugPrint(response.data.toString());
 
-    debugPrint("TOTAL BUS API = ${data.length}");
+    final List data =
+        response.data["data"];
+
+    debugPrint(
+      "TOTAL BUS API = ${data.length}",
+    );
 
     return data
         .where((e) {
-          debugPrint(e);
+
+          debugPrint(e.toString());
 
           return e["latitude"] != null &&
               e["longitude"] != null &&
               e["is_tracking"] == true;
+
         })
-        .map((e) => BusLocationModel.fromJson(e))
+        .map(
+          (e) =>
+              BusLocationModel.fromJson(e),
+        )
         .toList();
   }
 }
