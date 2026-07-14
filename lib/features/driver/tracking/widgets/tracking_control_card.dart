@@ -5,11 +5,13 @@ import '../../../../providers/driver_tracking_provider.dart';
 class TrackingControlCard extends StatelessWidget {
   final DriverTrackingProvider provider;
   final int? driverId;
+  final int busId;
 
   const TrackingControlCard({
     super.key,
     required this.provider,
     required this.driverId,
+    required this.busId,
   });
 
   @override
@@ -72,9 +74,7 @@ class TrackingControlCard extends StatelessWidget {
 
                         } else {
 
-                          await provider.startTracking(
-                            driverId!,
-                          );
+                          await provider.startTracking(driverId!, busId);
 
                         }
 

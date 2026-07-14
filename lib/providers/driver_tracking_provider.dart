@@ -53,7 +53,10 @@ class DriverTrackingProvider extends ChangeNotifier {
   // START TRACKING
   // =========================
 
-  Future<void> startTracking(int driverId) async {
+  Future<void> startTracking(
+    int driverId,
+    int busId,
+  ) async {
     bool serviceEnabled =
         await Geolocator.isLocationServiceEnabled();
 
@@ -95,15 +98,7 @@ class DriverTrackingProvider extends ChangeNotifier {
 
       currentPosition = position;
 
-      busLocation = LatLng(
-        position.latitude,
-        position.longitude,
-      );
-
       notifyListeners();
-
-      debugPrint(
-          "GPS ${position.latitude}, ${position.longitude}");
 
       await _service.sendLocation(
         driverId: driverId,
@@ -113,6 +108,9 @@ class DriverTrackingProvider extends ChangeNotifier {
         heading: position.heading,
         accuracy: position.accuracy,
       );
+
+      // opsional: langsung refresh setelah backend selesai update
+      await loadBusLocation(busId);
     });
   }
 

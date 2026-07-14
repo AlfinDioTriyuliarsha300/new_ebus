@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../core/constants/storage_keys.dart';
 import '../../../providers/driver_tracking_provider.dart';
 
 import 'widgets/tracking_map.dart';
@@ -31,12 +30,13 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
   Future<void> loadData() async {
     final prefs = await SharedPreferences.getInstance();
 
-    driverId = prefs.getInt("driver_id");
+    if (!mounted) return;
 
+    driverId = prefs.getInt("driver_id");
     busId = prefs.getInt("bus_id");
 
     if (busId != null) {
-      print("BUS ID TRACKING = $busId");
+      debugPrint("BUS ID TRACKING = $busId");
 
       final provider = context.read<DriverTrackingProvider>();
 
@@ -45,9 +45,7 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
       provider.startRealtime(busId!);
     }
 
-    if (mounted) {
-      setState(() {});
-    }
+    setState(() {});
   }
 
   @override
@@ -83,7 +81,12 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
 
                   const SizedBox(height: 15),
 
-                  TrackingControlCard(provider: provider, driverId: driverId),
+                  if (busId != null)
+                    TrackingControlCard(
+                      provider: provider,
+                      driverId: driverId,
+                      busId: busId!,
+                    ),
                 ],
               ),
             ),
