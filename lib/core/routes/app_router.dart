@@ -1,6 +1,8 @@
 import 'package:go_router/go_router.dart';
 import 'package:new_ebus/features/driver/home/driver_home_screen.dart';
 import 'package:new_ebus/features/passenger/screens/passenger_main_screen.dart';
+import 'package:new_ebus/features/passenger/tracking/passenger_tracking_input_screen.dart';
+import 'package:new_ebus/features/passenger/tracking/passenger_tracking_screen.dart';
 import 'package:new_ebus/features/web/admin_company/armada_screen.dart';
 import 'package:new_ebus/features/web/admin_company/driver_management_screen.dart';
 import 'package:new_ebus/features/web/admin_company/report/report_screen.dart';
@@ -118,6 +120,12 @@ class AppRouter {
       GoRoute(
         path: "/super-admin-report",
         builder: (context, state) => const SuperAdminReportScreen(),
+      ),
+
+      GoRoute(
+        path: "/passenger-tracking",
+        builder: (_, __) =>
+            const PassengerTrackingInputScreen(),
       ),
     ],
   );

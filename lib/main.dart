@@ -10,16 +10,17 @@ import 'package:new_ebus/providers/report_provider.dart';
 import 'package:new_ebus/providers/route_provider.dart';
 import 'package:new_ebus/providers/schedule_provider.dart';
 import 'package:new_ebus/providers/terminal_provider.dart';
+import 'package:new_ebus/providers/ticket_provider.dart';
 import 'package:new_ebus/providers/user_provider.dart';
 import 'package:new_ebus/providers/monitoring_provider.dart';
 
 import 'package:provider/provider.dart';
-
 import 'providers/province_provider.dart';
 import 'providers/city_provider.dart';
-import 'providers/driver_tracking_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/bus_provider.dart';
+import 'providers/driver_tracking_provider.dart';
+import 'providers/passenger_tracking_provider.dart';
 
 import 'core/routes/app_router.dart';
 import 'core/theme/app_theme.dart';
@@ -66,6 +67,10 @@ void main() {
         ChangeNotifierProvider(create: (_) => DriverDashboardProvider()),
 
         ChangeNotifierProvider(create: (_) => DriverTrackingProvider()),
+
+        ChangeNotifierProvider(create: (_) => PassengerTrackingProvider()),
+
+        ChangeNotifierProvider(create: (_) => TicketProvider()),
       ],
 
       child: const EBusApp(),
