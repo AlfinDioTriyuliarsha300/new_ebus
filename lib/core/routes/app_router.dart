@@ -124,8 +124,18 @@ class AppRouter {
 
       GoRoute(
         path: "/passenger-tracking",
-        builder: (_, __) =>
-            const PassengerTrackingInputScreen(),
+        builder: (_, __) => const PassengerTrackingInputScreen(),
+      ),
+
+      GoRoute(
+        path: "/passenger-tracking/:ticket",
+        builder: (context, state) {
+          final ticket = state.pathParameters["ticket"]!;
+
+          final busId = state.extra as int;
+
+          return PassengerTrackingScreen(ticket: ticket, busId: busId);
+        },
       ),
     ],
   );

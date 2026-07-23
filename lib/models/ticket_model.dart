@@ -32,29 +32,27 @@ class TicketModel {
     required this.platNomor,
   });
 
-  factory TicketModel.fromJson(
-    Map<String, dynamic> json,
-  ) {
+  factory TicketModel.fromJson(Map<String, dynamic> json) {
     return TicketModel(
       id: json["id"],
 
-      ticketNumber: json["ticket_number"] ?? "",
+      ticketNumber: json["ticket_number"],
 
-      passengerName: json["passenger_name"] ?? "",
+      passengerName: json["passenger_name"],
 
-      phone: json["phone"] ?? "",
+      phone: json["phone"],
 
-      seatNumber: json["seat_number"] ?? "",
+      seatNumber: json["seat_number"],
 
-      status: json["status"] ?? "",
+      status: json["status"],
 
       busId: json["bus_id"],
 
       scheduleId: json["schedule_id"],
 
-      nomorBus: json["nomor_bus"] ?? "",
+      nomorBus: json["nomor_bus"],
 
-      platNomor: json["plat_nomor"] ?? "",
+      platNomor: json["plat_nomor"],
     );
   }
 }

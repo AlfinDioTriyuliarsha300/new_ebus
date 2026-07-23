@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:new_ebus/features/passenger/tracking/passenger_tracking_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../providers/ticket_provider.dart';
 
@@ -16,63 +17,105 @@ class _PassengerTripScreenState extends State<PassengerTripScreen> {
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<TicketProvider>().loadTickets();
-    });
+    loadTicket();
+  }
+
+  Future<void> loadTicket() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final userId = prefs.getInt("user_id");
+
+    if (userId == null) {
+      return;
+    }
+
+    if (!mounted) {
+      return;
+    }
+    context.read<TicketProvider>().loadTickets(userId);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<TicketProvider>(
-      builder: (context, provider, child) {
-        if (provider.loading) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    final provider = context.watch<TicketProvider>();
 
-        if (provider.tickets.isEmpty) {
-          return const Center(child: Text("Belum Ada Perjalanan"));
-        }
+    if (provider.loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
+    if (provider.tickets.isEmpty) {
+      return const Center(
+        child: Text(
+          "Belum Ada Perjalanan",
 
-          itemCount: provider.tickets.length,
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+      );
+    }
 
-          itemBuilder: (context, index) {
-            final ticket = provider.tickets[index];
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
 
-            return Card(
-              child: ListTile(
-                title: Text(ticket.ticketNumber),
+      itemCount: provider.tickets.length,
 
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      itemBuilder: (context, index) {
+        final ticket = provider.tickets[index];
 
-                  children: [
-                    Text(ticket.platNomor),
+        return Card(
+          elevation: 4,
 
-                    Text("Seat : ${ticket.seatNumber}"),
+          margin: const EdgeInsets.only(bottom: 15),
 
-                    Text(ticket.status),
-                  ],
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+
+              children: [
+                Text(
+                  ticket.nomorBus,
+
+                  style: const TextStyle(
+                    fontSize: 20,
+
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
+                const SizedBox(height: 10),
 
-                trailing: const Icon(Icons.chevron_right),
+                Text("Plat Nomor : ${ticket.platNomor}"),
 
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => PassengerTrackingScreen(
-                        ticket: ticket.ticketNumber,
-                        busId: ticket.busId,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            );
-          },
+                Text("Nomor Tiket : ${ticket.ticketNumber}"),
+
+                Text("Penumpang : ${ticket.passengerName}"),
+
+                Text("Kursi : ${ticket.seatNumber}"),
+
+                Text("Status : ${ticket.status}"),
+
+                const SizedBox(height: 20),
+
+                SizedBox(
+                  width: double.infinity,
+
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.location_on),
+
+                    label: const Text("Lacak Bus"),
+
+                    onPressed: () {
+                      context.push(
+                        "/passenger-tracking/${ticket.ticketNumber}",
+
+                        extra: ticket.busId,
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
         );
       },
     );

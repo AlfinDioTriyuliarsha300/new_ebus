@@ -3,26 +3,40 @@ import 'package:flutter/material.dart';
 import '../core/services/ticket_service.dart';
 import '../models/ticket_model.dart';
 
-class TicketProvider extends ChangeNotifier {
-  final TicketService service = TicketService();
+class TicketProvider extends ChangeNotifier{
 
-  bool loading = false;
+  final TicketService _service =
+      TicketService();
 
-  List<TicketModel> tickets = [];
+  List<TicketModel> tickets=[];
 
-  Future<void> loadTickets() async {
-    loading = true;
+  bool loading=false;
+
+  Future<void> loadTickets(
+      int userId,
+  ) async{
+
+    loading=true;
 
     notifyListeners();
 
-    try {
-      tickets = await service.getTickets();
-    } catch (e) {
+    try{
+
+      tickets=
+          await _service.getUserTickets(
+              userId,
+          );
+
+    }catch(e){
+
       debugPrint(e.toString());
+
     }
 
-    loading = false;
+    loading=false;
 
     notifyListeners();
+
   }
+
 }
