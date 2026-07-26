@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -17,30 +19,64 @@ class _TrackingMapState extends State<PassengerTrackingMap> {
   final MapController _mapController = MapController();
 
   LatLng? _lastPosition;
+  LatLng? _animatedPosition;
 
-  bool _isFirstLoad = true;
+  Timer? _animationTimer;
 
   @override
   void didUpdateWidget(covariant PassengerTrackingMap oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    final tracking = widget.provider.trackingData;
-
     final bus = widget.provider.busLocation;
 
-    if (tracking != null && tracking.route != null && _isFirstLoad) {
-      if (bus != null) {
-        if (_lastPosition == null ||
-            _lastPosition!.latitude != bus.latitude ||
-            _lastPosition!.longitude != bus.longitude) {
-          _lastPosition = bus;
+    if (bus == null) return;
 
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _mapController.move(bus, _mapController.camera.zoom);
-          });
-        }
-      }
+    // Pertama kali membuka halaman
+    if (_lastPosition == null) {
+      _lastPosition = bus;
+
+      _animatedPosition = bus;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _mapController.move(bus, 16);
+      });
+
+      return;
     }
+
+    // Update posisi bus tanpa menggeser kamera lagi
+    if (_lastPosition!.latitude != bus.latitude ||
+        _lastPosition!.longitude != bus.longitude) {
+      _animateMarker(_lastPosition!, bus);
+
+      _lastPosition = bus;
+    }
+  }
+
+  void _animateMarker(LatLng from, LatLng to) {
+    _animationTimer?.cancel();
+
+    const totalStep = 20;
+
+    int currentStep = 0;
+
+    _animationTimer = Timer.periodic(const Duration(milliseconds: 25), (timer) {
+      currentStep++;
+
+      final t = currentStep / totalStep;
+
+      setState(() {
+        _animatedPosition = LatLng(
+          from.latitude + ((to.latitude - from.latitude) * t),
+
+          from.longitude + ((to.longitude - from.longitude) * t),
+        );
+      });
+
+      if (currentStep >= totalStep) {
+        timer.cancel();
+      }
+    });
   }
 
   @override
@@ -70,6 +106,9 @@ class _TrackingMapState extends State<PassengerTrackingMap> {
 
     final center =
         widget.provider.busLocation ?? const LatLng(-7.983908, 112.621391);
+
+    final heading =
+        (tracking?.location.heading ?? 0) * (3.141592653589793 / 180);
 
     return FlutterMap(
       mapController: _mapController,
@@ -232,24 +271,24 @@ class _TrackingMapState extends State<PassengerTrackingMap> {
           MarkerLayer(
             markers: [
               Marker(
-                point: widget.provider.busLocation!,
-
+                point: _animatedPosition ?? widget.provider.busLocation!,
                 width: 65,
-
                 height: 65,
-
                 child: Transform.rotate(
-                  angle: 0,
-
+                  angle: heading,
                   child: Container(
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
                       boxShadow: [
-                        BoxShadow(color: Colors.black26, blurRadius: 10),
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 12,
+                          spreadRadius: 2,
+                          offset: Offset(0, 3),
+                        ),
                       ],
                     ),
-
                     child: Column(
                       children: [
                         Container(
@@ -257,37 +296,31 @@ class _TrackingMapState extends State<PassengerTrackingMap> {
                             horizontal: 8,
                             vertical: 4,
                           ),
-
                           decoration: BoxDecoration(
                             color: Colors.white,
-
                             borderRadius: BorderRadius.circular(12),
                           ),
-
                           child: Text(
                             tracking?.bus.status ?? "-",
-
-                            style: const TextStyle(
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
                               fontSize: 10,
-
                               fontWeight: FontWeight.bold,
+                              color: busColor,
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 5),
-
                         Expanded(
                           child: Stack(
                             alignment: Alignment.center,
                             children: [
                               Icon(
-                                Icons.directions_bus,
+                                Icons.directions_bus_filled,
                                 color: busColor,
-                                size: 36,
+                                size: 38,
                               ),
-
-                              Positioned(
+                              const Positioned(
                                 top: 2,
                                 child: Icon(
                                   Icons.navigation,
@@ -307,5 +340,12 @@ class _TrackingMapState extends State<PassengerTrackingMap> {
           ),
       ],
     );
+  }
+
+  @override
+  void dispose() {
+    _animationTimer?.cancel();
+
+    super.dispose();
   }
 }

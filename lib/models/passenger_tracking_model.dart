@@ -64,7 +64,7 @@ class BusData {
 
   final String platNomor;
 
-  final String status;
+  String status;
 
   final bool tracking;
 
@@ -72,7 +72,7 @@ class BusData {
 
   final String? currentZoneStatus;
 
-  final double progress;
+  double progress;
 
   BusData({
     required this.id,
@@ -100,23 +100,23 @@ class BusData {
 }
 
 class LocationData {
-  final double lat;
+  double lat;
 
-  final double lng;
+  double lng;
 
-  final double speed;
+  double speed;
 
-  final double heading;
+  double heading;
 
-  final double accuracy;
+  double accuracy;
 
-  final String? updatedAt;
+  String? updatedAt;
 
-  final String? currentZone;
+  String? currentZone;
 
-  final String? currentZoneStatus;
+  String? currentZoneStatus;
 
-  final double progress;
+  double progress;
 
   LocationData({
     required this.lat,
@@ -142,6 +142,22 @@ class LocationData {
       currentZoneStatus: json["current_zone_status"],
       progress: (json["progress"] ?? 0).toDouble(),
     );
+  }
+
+  void updateFromSocket(Map<String, dynamic> json) {
+    lat = (json["latitude"] ?? lat).toDouble();
+    lng = (json["longitude"] ?? lng).toDouble();
+    speed = (json["speed"] ?? speed).toDouble();
+    heading = (json["heading"] ?? heading).toDouble();
+    accuracy = (json["accuracy"] ?? accuracy).toDouble();
+
+    progress = (json["progress"] ?? progress).toDouble();
+
+    currentZone = json["current_zone"] ?? currentZone;
+
+    currentZoneStatus = json["current_zone_status"] ?? currentZoneStatus;
+
+    updatedAt = json["updated_at"]?.toString() ?? updatedAt;
   }
 }
 
