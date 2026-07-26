@@ -7,7 +7,7 @@ class ApiConstants {
   static String get baseUrl {
 
     if (useRailway) {
-      return "newebusbackend-production-9bec.up.railway.app/api";
+      return "https://newebusbackend-production-9bec.up.railway.app/api";
     }
 
     if (kIsWeb) {

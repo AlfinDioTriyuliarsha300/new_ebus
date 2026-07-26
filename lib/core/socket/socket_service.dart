@@ -5,7 +5,7 @@ class SocketService {
 
   static void connect() {
     socket = IO.io(
-      "https://newebusbackend-production.up.railway.app",
+      "https://newebusbackend-production-9bec.up.railway.app",
 
       IO.OptionBuilder()
           .setTransports(['websocket'])
