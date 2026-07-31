@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:new_ebus/features/driver/profile/driver_profile_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/constants/storage_keys.dart';
@@ -7,6 +8,8 @@ import '../../../providers/auth_provider.dart';
 import '../../../providers/driver_dashboard_provider.dart';
 
 import '../tracking/driver_tracking_screen.dart';
+
+import '../settings/driver_settings_screen.dart';
 
 import 'widgets/driver_header.dart';
 import 'widgets/driver_status_card.dart';
@@ -157,12 +160,24 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
 
                       case 4:
 
-                        // Profil
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const DriverProfileScreen(),
+                          ),
+                        );
+
                         break;
 
                       case 5:
 
-                        // Pengaturan
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const DriverSettingsScreen(),
+                          ),
+                        );
+
                         break;
                     }
                   },

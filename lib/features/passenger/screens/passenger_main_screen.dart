@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'passenger_history_screen.dart';
-import 'passenger_home_screen.dart';
+import '../home/passenger_home_screen.dart';
 import 'passenger_setting_screen.dart';
 import 'passenger_trip_screen.dart';
 

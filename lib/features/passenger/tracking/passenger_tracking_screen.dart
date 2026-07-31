@@ -21,12 +21,16 @@ class PassengerTrackingScreen extends StatefulWidget {
 }
 
 class _PassengerTrackingScreenState extends State<PassengerTrackingScreen> {
+  late PassengerTrackingProvider trackingProvider;
+
   @override
   void initState() {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<PassengerTrackingProvider>().startRealtime(widget.ticket);
+      trackingProvider = context.read<PassengerTrackingProvider>();
+
+      trackingProvider.startRealtime(widget.ticket);
     });
   }
 
@@ -69,15 +73,9 @@ class _PassengerTrackingScreenState extends State<PassengerTrackingScreen> {
       appBar: AppBar(title: const Text("Tracking Bus")),
       body: Column(
         children: [
-          Expanded(
-            child: PassengerTrackingMap(
-              provider: provider,
-            ),
-          ),
+          Expanded(child: PassengerTrackingMap(provider: provider)),
 
-          PassengerTrackingInfoCard(
-            provider: provider,
-          ),
+          PassengerTrackingInfoCard(provider: provider),
         ],
       ),
     );
@@ -145,7 +143,8 @@ class _PassengerTrackingScreenState extends State<PassengerTrackingScreen> {
 
   @override
   void dispose() {
-    context.read<PassengerTrackingProvider>().stopRealtime();
+    trackingProvider.stopRealtime();
+
     super.dispose();
   }
 }

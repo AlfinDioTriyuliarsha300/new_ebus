@@ -132,26 +132,28 @@ class LocationData {
 
   factory LocationData.fromJson(Map<String, dynamic> json) {
     return LocationData(
-      lat: (json["lat"] ?? 0).toDouble(),
-      lng: (json["lng"] ?? 0).toDouble(),
-      speed: (json["speed"] ?? 0).toDouble(),
-      heading: (json["heading"] ?? 0).toDouble(),
-      accuracy: (json["accuracy"] ?? 0).toDouble(),
+      lat: double.tryParse(json["lat"].toString()) ?? 0,
+      lng: double.tryParse(json["lng"].toString()) ?? 0,
+      speed: double.tryParse(json["speed"].toString()) ?? 0,
+      heading: double.tryParse(json["heading"].toString()) ?? 0,
+      accuracy: double.tryParse(json["accuracy"].toString()) ?? 0,
       updatedAt: json["updated_at"]?.toString(),
       currentZone: json["current_zone"],
       currentZoneStatus: json["current_zone_status"],
-      progress: (json["progress"] ?? 0).toDouble(),
+      progress: double.tryParse(json["progress"].toString()) ?? 0,
     );
   }
 
   void updateFromSocket(Map<String, dynamic> json) {
-    lat = (json["latitude"] ?? lat).toDouble();
-    lng = (json["longitude"] ?? lng).toDouble();
-    speed = (json["speed"] ?? speed).toDouble();
-    heading = (json["heading"] ?? heading).toDouble();
-    accuracy = (json["accuracy"] ?? accuracy).toDouble();
-
-    progress = (json["progress"] ?? progress).toDouble();
+    lat = double.tryParse((json["latitude"] ?? lat).toString()) ?? lat;
+    lng = double.tryParse((json["longitude"] ?? lng).toString()) ?? lng;
+    speed = double.tryParse((json["speed"] ?? speed).toString()) ?? speed;
+    heading =
+        double.tryParse((json["heading"] ?? heading).toString()) ?? heading;
+    accuracy =
+        double.tryParse((json["accuracy"] ?? accuracy).toString()) ?? accuracy;
+    progress =
+        double.tryParse((json["progress"] ?? progress).toString()) ?? progress;
 
     currentZone = json["current_zone"] ?? currentZone;
 

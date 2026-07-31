@@ -1,123 +1,265 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../core/constants/storage_keys.dart';
 import '../../../providers/ticket_provider.dart';
+import '../tracking/passenger_tracking_screen.dart';
 
 class PassengerTripScreen extends StatefulWidget {
   const PassengerTripScreen({super.key});
 
   @override
-  State<PassengerTripScreen> createState() => _PassengerTripScreenState();
+  State<PassengerTripScreen> createState() =>
+      _PassengerTripScreenState();
 }
 
-class _PassengerTripScreenState extends State<PassengerTripScreen> {
+class _PassengerTripScreenState
+    extends State<PassengerTripScreen> {
+
   @override
   void initState() {
     super.initState();
 
-    loadTicket();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      loadData();
+    });
   }
 
-  Future<void> loadTicket() async {
+  Future<void> loadData() async {
+
     final prefs = await SharedPreferences.getInstance();
 
-    final userId = prefs.getInt("user_id");
+    final userId =
+        prefs.getInt(StorageKeys.userId);
 
-    if (userId == null) {
-      return;
-    }
+    if (userId == null) return;
 
-    if (!mounted) {
-      return;
-    }
-    context.read<TicketProvider>().loadTickets(userId);
+    if (!mounted) return;
+
+    context
+        .read<TicketProvider>()
+        .loadTickets(userId);
   }
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<TicketProvider>();
+
+    final provider =
+        context.watch<TicketProvider>();
 
     if (provider.loading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (provider.tickets.isEmpty) {
-      return const Center(
-        child: Text(
-          "Belum Ada Perjalanan",
-
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
         ),
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Perjalanan Saya"),
+      ),
 
-      itemCount: provider.tickets.length,
+      body: provider.tickets.isEmpty
 
-      itemBuilder: (context, index) {
-        final ticket = provider.tickets[index];
-
-        return Card(
-          elevation: 4,
-
-          margin: const EdgeInsets.only(bottom: 15),
-
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-
-              children: [
-                Text(
-                  ticket.nomorBus,
-
-                  style: const TextStyle(
-                    fontSize: 20,
-
-                    fontWeight: FontWeight.bold,
-                  ),
+          ? const Center(
+              child: Text(
+                "Belum ada tiket.",
+                style: TextStyle(
+                  fontSize: 18,
                 ),
-                const SizedBox(height: 10),
+              ),
+            )
 
-                Text("Plat Nomor : ${ticket.platNomor}"),
+          : RefreshIndicator(
+              onRefresh: loadData,
 
-                Text("Nomor Tiket : ${ticket.ticketNumber}"),
+              child: ListView.builder(
+                padding:
+                    const EdgeInsets.all(16),
 
-                Text("Penumpang : ${ticket.passengerName}"),
+                itemCount:
+                    provider.tickets.length,
 
-                Text("Kursi : ${ticket.seatNumber}"),
+                itemBuilder:
+                    (context, index) {
 
-                Text("Status : ${ticket.status}"),
+                  final ticket =
+                      provider.tickets[index];
 
-                const SizedBox(height: 20),
+                  return Card(
+                    margin:
+                        const EdgeInsets.only(
+                      bottom: 16,
+                    ),
 
-                SizedBox(
-                  width: double.infinity,
+                    elevation: 3,
 
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.location_on),
+                    shape:
+                        RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.circular(
+                              15),
+                    ),
 
-                    label: const Text("Lacak Bus"),
+                    child: Padding(
+                      padding:
+                          const EdgeInsets.all(
+                              16),
 
-                    onPressed: () {
-                      context.push(
-                        "/passenger-tracking/${ticket.ticketNumber}",
+                      child: Column(
+                        crossAxisAlignment:
+                            CrossAxisAlignment
+                                .start,
 
-                        extra: ticket.busId,
-                      );
-                    },
-                  ),
-                ),
-              ],
+                        children: [
+
+                          Row(
+                            children: [
+
+                              const Icon(
+                                Icons
+                                    .directions_bus,
+                                color:
+                                    Colors.blue,
+                              ),
+
+                              const SizedBox(
+                                  width: 10),
+
+                              Text(
+                                "Bus ${ticket.nomorBus}",
+
+                                style:
+                                    const TextStyle(
+                                  fontWeight:
+                                      FontWeight
+                                          .bold,
+                                  fontSize: 20,
+                                ),
+                              ),
+
+                              const Spacer(),
+
+                              Container(
+                                padding:
+                                    const EdgeInsets
+                                        .symmetric(
+                                  horizontal: 10,
+                                  vertical: 5,
+                                ),
+
+                                decoration:
+                                    BoxDecoration(
+                                  color: ticket
+                                              .status ==
+                                          "Aktif"
+                                      ? Colors.green
+                                      : Colors.red,
+
+                                  borderRadius:
+                                      BorderRadius
+                                          .circular(
+                                              20),
+                                ),
+
+                                child: Text(
+                                  ticket.status,
+
+                                  style:
+                                      const TextStyle(
+                                    color:
+                                        Colors.white,
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+
+                          const Divider(
+                            height: 30,
+                          ),
+
+                          Text(
+                            "Nomor Tiket : ${ticket.ticketNumber}",
+                          ),
+
+                          Text(
+                            "Penumpang : ${ticket.passengerName}",
+                          ),
+
+                          Text(
+                            "Nomor HP : ${ticket.phone}",
+                          ),
+
+                          Text(
+                            "Plat Nomor : ${ticket.platNomor}",
+                          ),
+
+                          Text(
+                            "Kursi : ${ticket.seatNumber}",
+                          ),
+
+                          Text(
+                            "Tanggal : ${ticket.tanggalBerangkat}",
+                          ),
+
+                          Text(
+                            "Jam : ${ticket.jamBerangkat}",
+                          ),
+
+                          Text(
+                            "Harga : Rp ${ticket.hargaTiket}",
+                          ),
+
+                          const SizedBox(
+                            height: 20,
+                          ),
+
+                          SizedBox(
+                            width:
+                                double.infinity,
+
+                            child:
+                                ElevatedButton.icon(
+
+                              icon: const Icon(
+                                  Icons.location_on),
+
+                              label: const Text(
+                                  "Lacak Bus"),
+
+                              onPressed: () {
+
+                                Navigator.push(
+
+                                  context,
+
+                                  MaterialPageRoute(
+
+                                    builder: (_) =>
+                                        PassengerTrackingScreen(
+
+                                      ticket:
+                                          ticket.ticketNumber,
+
+                                      busId:
+                                          ticket.busId,
+
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
-          ),
-        );
-      },
     );
   }
 }
