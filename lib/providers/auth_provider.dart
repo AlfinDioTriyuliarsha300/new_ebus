@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
 import '../core/constants/storage_keys.dart';
+import '../core/services/fcm_service.dart';
 import '../core/services/auth_service.dart';
+
 import '../models/user_model.dart';
 
 class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
+  final FcmService _fcmService = FcmService();
 
   bool isLoading = false;
 
@@ -42,6 +47,24 @@ class AuthProvider extends ChangeNotifier {
 
         cityId: currentUser!.cityId,
       );
+
+      final token = await FirebaseMessaging.instance.getToken();
+
+      debugPrint("================================");
+      debugPrint("LOGIN BERHASIL");
+      debugPrint("USER ID : ${currentUser!.id}");
+      debugPrint("EMAIL   : ${currentUser!.email}");
+      debugPrint("TOKEN   : $token");
+      debugPrint("================================");
+
+      if (token != null) {
+        await _fcmService.saveToken(
+          userId: currentUser!.id,
+          token: token,
+        );
+      } else {
+        debugPrint("FCM TOKEN NULL");
+      }
 
       isLoggedIn = true;
 

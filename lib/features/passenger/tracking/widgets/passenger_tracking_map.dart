@@ -38,7 +38,9 @@ class _TrackingMapState extends State<PassengerTrackingMap> {
       _animatedPosition = bus;
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _mapController.move(bus, 16);
+        if (widget.provider.followBus) {
+          _mapController.move(bus, 16);
+        }
       });
 
       return;
@@ -65,18 +67,32 @@ class _TrackingMapState extends State<PassengerTrackingMap> {
 
       final t = currentStep / totalStep;
 
-      setState(() {
-        _animatedPosition = LatLng(
-          from.latitude + ((to.latitude - from.latitude) * t),
+      final position = LatLng(
+        from.latitude + ((to.latitude - from.latitude) * t),
+        from.longitude + ((to.longitude - from.longitude) * t),
+      );
 
-          from.longitude + ((to.longitude - from.longitude) * t),
-        );
+      setState(() {
+        _animatedPosition = position;
       });
+
+      // Kamera mengikuti marker
+      if (widget.provider.followBus) {
+        _mapController.move(position, _mapController.camera.zoom);
+      }
 
       if (currentStep >= totalStep) {
         timer.cancel();
       }
     });
+  }
+
+  void moveToBus() {
+    final bus = widget.provider.busLocation;
+
+    if (bus == null) return;
+
+    _mapController.move(bus, _mapController.camera.zoom);
   }
 
   @override
@@ -113,8 +129,16 @@ class _TrackingMapState extends State<PassengerTrackingMap> {
     return FlutterMap(
       mapController: _mapController,
 
-      options: MapOptions(initialCenter: center, initialZoom: 16),
+      options: MapOptions(
+        initialCenter: center,
+        initialZoom: 16,
 
+        onPositionChanged: (position, hasGesture) {
+          if (hasGesture) {
+            widget.provider.disableFollowBus();
+          }
+        },
+      ),
       children: [
         TileLayer(
           urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -195,73 +219,87 @@ class _TrackingMapState extends State<PassengerTrackingMap> {
           ),
 
         //---------------------------------------
-        // START TERMINAL
+        // TERMINAL + CHECKPOINT
         //---------------------------------------
         if (tracking?.route != null)
           MarkerLayer(
             markers: [
+              // Terminal Awal
               Marker(
                 point: LatLng(
                   tracking!.route!.terminalAwal.lat,
-
                   tracking.route!.terminalAwal.lng,
                 ),
-
-                width: 50,
-
-                height: 50,
-
-                child: const Icon(Icons.flag, color: Colors.green, size: 40),
+                width: 80,
+                height: 80,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.flag_circle,
+                      color: Colors.green,
+                      size: 36,
+                    ),
+                    Text(
+                      tracking.route!.terminalAwal.nama,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ],
-          ),
 
-        //---------------------------------------
-        // END TERMINAL
-        //---------------------------------------
-        if (tracking?.route != null)
-          MarkerLayer(
-            markers: [
+              // Terminal Tujuan
               Marker(
                 point: LatLng(
-                  tracking!.route!.terminalTujuan.lat,
-
+                  tracking.route!.terminalTujuan.lat,
                   tracking.route!.terminalTujuan.lng,
                 ),
+                width: 80,
+                height: 80,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.flag_circle, color: Colors.red, size: 36),
+                    Text(
+                      tracking.route!.terminalTujuan.nama,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
 
-                width: 50,
-
-                height: 50,
-
-                child: const Icon(
-                  Icons.flag_circle,
-
-                  color: Colors.red,
-
-                  size: 40,
+              // Semua Checkpoint
+              ...tracking.route!.checkpoints.map(
+                (cp) => Marker(
+                  point: LatLng(cp.lat, cp.lng),
+                  width: 80,
+                  height: 60,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.location_on,
+                        color: Colors.orange,
+                        size: 30,
+                      ),
+                      Text(
+                        cp.nama,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 9),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
-          ),
-
-        //---------------------------------------
-        // CHECKPOINT
-        //---------------------------------------
-        if (tracking?.route != null)
-          MarkerLayer(
-            markers: tracking!.route!.checkpoints
-                .map(
-                  (e) => Marker(
-                    point: LatLng(e.lat, e.lng),
-
-                    width: 35,
-
-                    height: 35,
-
-                    child: const Icon(Icons.location_on, color: Colors.orange),
-                  ),
-                )
-                .toList(),
           ),
 
         //---------------------------------------
@@ -274,71 +312,136 @@ class _TrackingMapState extends State<PassengerTrackingMap> {
                 point: _animatedPosition ?? widget.provider.busLocation!,
                 width: 65,
                 height: 65,
-                child: Transform.rotate(
-                  angle: heading,
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black26,
-                          blurRadius: 12,
-                          spreadRadius: 2,
-                          offset: Offset(0, 3),
+                child: GestureDetector(
+                  onTap: _showBusInfo,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
                         ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            tracking?.bus.status ?? "-",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: busColor,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: const [
+                            BoxShadow(color: Colors.black26, blurRadius: 5),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              tracking?.bus.nomorBus ?? "-",
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 11,
+                              ),
                             ),
-                          ),
+
+                            Text(
+                              "${tracking?.location.speed.toStringAsFixed(0) ?? "0"} km/j",
+                              style: TextStyle(color: busColor, fontSize: 10),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 5),
-                        Expanded(
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              Icon(
-                                Icons.directions_bus_filled,
-                                color: busColor,
-                                size: 38,
-                              ),
-                              const Positioned(
-                                top: 2,
-                                child: Icon(
-                                  Icons.navigation,
-                                  color: Colors.white,
-                                  size: 14,
-                                ),
-                              ),
-                            ],
-                          ),
+                      ),
+
+                      const SizedBox(height: 2),
+
+                      Transform.rotate(
+                        angle: heading,
+                        child: Icon(
+                          Icons.directions_bus,
+                          color: busColor,
+                          size: 42,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ],
           ),
       ],
+    );
+  }
+
+  void _showBusInfo() {
+    final tracking = widget.provider.trackingData;
+
+    if (tracking == null) return;
+
+    showDialog(
+      context: context,
+      builder: (_) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              const Icon(Icons.directions_bus, color: Colors.blue),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  tracking.bus.nomorBus,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _infoRow("Perusahaan", tracking.company),
+
+              _infoRow("Plat Nomor", tracking.bus.platNomor),
+
+              _infoRow("Status", tracking.bus.status),
+
+              _infoRow(
+                "Kecepatan",
+                "${tracking.location.speed.toStringAsFixed(1)} km/jam",
+              ),
+
+              _infoRow(
+                "Progress",
+                "${tracking.location.progress.toStringAsFixed(0)} %",
+              ),
+
+              _infoRow("Zona", tracking.location.currentZone ?? "-"),
+            ],
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text("Tutup"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _infoRow(String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 90,
+            child: Text(
+              title,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+
+          const Text(": "),
+
+          Expanded(child: Text(value)),
+        ],
+      ),
     );
   }
 

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 class PassengerTrackingModel {
   final PassengerData passenger;
   final TicketData ticket;
@@ -14,6 +16,43 @@ class PassengerTrackingModel {
     required this.location,
     this.route,
   });
+
+  /// Menghitung estimasi waktu tiba (menit)
+  int calculateEstimatedArrival() {
+    if (route == null) return 0;
+
+    if (location.speed <= 0) return 0;
+
+    final destination = route!.terminalTujuan;
+
+    const earthRadius = 6371000.0;
+
+    double dLat = _toRadians(destination.lat - location.lat);
+    double dLng = _toRadians(destination.lng - location.lng);
+
+    double a =
+        sin(dLat / 2) * sin(dLat / 2) +
+        cos(_toRadians(location.lat)) *
+            cos(_toRadians(destination.lat)) *
+            sin(dLng / 2) *
+            sin(dLng / 2);
+
+    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+
+    double distanceMeter = earthRadius * c;
+
+    double speedMeterPerSecond = location.speed / 3.6;
+
+    if (speedMeterPerSecond <= 0) return 0;
+
+    double seconds = distanceMeter / speedMeterPerSecond;
+
+    return (seconds / 60).round();
+  }
+
+  double _toRadians(double degree) {
+    return degree * pi / 180;
+  }
 
   factory PassengerTrackingModel.fromJson(Map<String, dynamic> json) {
     return PassengerTrackingModel(
@@ -68,9 +107,9 @@ class BusData {
 
   final bool tracking;
 
-  final String? currentZone;
+  String? currentZone;
 
-  final String? currentZoneStatus;
+  String? currentZoneStatus;
 
   double progress;
 
@@ -94,7 +133,7 @@ class BusData {
       tracking: json["tracking"],
       currentZone: json["current_zone"],
       currentZoneStatus: json["current_zone_status"],
-      progress: (json["progress"] ?? 0).toDouble(),
+      progress: double.tryParse(json["progress"].toString()) ?? 0,
     );
   }
 }
@@ -118,16 +157,26 @@ class LocationData {
 
   double progress;
 
+  double remainingDistance;
+
+  int? estimatedMinutes;
+
   LocationData({
     required this.lat,
     required this.lng,
     required this.speed,
     required this.heading,
     required this.accuracy,
+
     this.updatedAt,
     this.currentZone,
     this.currentZoneStatus,
+
     required this.progress,
+
+    required this.remainingDistance,
+
+    this.estimatedMinutes,
   });
 
   factory LocationData.fromJson(Map<String, dynamic> json) {
@@ -141,6 +190,13 @@ class LocationData {
       currentZone: json["current_zone"],
       currentZoneStatus: json["current_zone_status"],
       progress: double.tryParse(json["progress"].toString()) ?? 0,
+
+      remainingDistance:
+          double.tryParse(json["remaining_distance"].toString()) ?? 0,
+
+      estimatedMinutes: json["estimated_minutes"] == null
+          ? null
+          : int.tryParse(json["estimated_minutes"].toString()),
     );
   }
 
@@ -154,6 +210,16 @@ class LocationData {
         double.tryParse((json["accuracy"] ?? accuracy).toString()) ?? accuracy;
     progress =
         double.tryParse((json["progress"] ?? progress).toString()) ?? progress;
+
+    remainingDistance =
+        double.tryParse(
+          (json["remaining_distance"] ?? remainingDistance).toString(),
+        ) ??
+        remainingDistance;
+
+    estimatedMinutes = json["estimated_minutes"] == null
+        ? estimatedMinutes
+        : int.tryParse(json["estimated_minutes"].toString());
 
     currentZone = json["current_zone"] ?? currentZone;
 
@@ -207,8 +273,8 @@ class RoutePoint {
 
   factory RoutePoint.fromJson(Map<String, dynamic> json) {
     return RoutePoint(
-      lat: (json["lat"]).toDouble(),
-      lng: (json["lng"]).toDouble(),
+      lat: double.tryParse(json["lat"].toString()) ?? 0,
+      lng: double.tryParse(json["lng"].toString()) ?? 0,
     );
   }
 }
@@ -224,9 +290,9 @@ class Terminal {
 
   factory Terminal.fromJson(Map<String, dynamic> json) {
     return Terminal(
-      nama: json["nama"],
-      lat: (json["lat"]).toDouble(),
-      lng: (json["lng"]).toDouble(),
+      nama: json["nama"] ?? "",
+      lat: double.tryParse(json["lat"].toString()) ?? 0,
+      lng: double.tryParse(json["lng"].toString()) ?? 0,
     );
   }
 }
@@ -249,10 +315,10 @@ class Checkpoint {
 
   factory Checkpoint.fromJson(Map<String, dynamic> json) {
     return Checkpoint(
-      id: json["id"],
-      nama: json["nama"],
-      lat: (json["lat"]).toDouble(),
-      lng: (json["lng"]).toDouble(),
+      id: json["id"] ?? 0,
+      nama: json["nama"] ?? "",
+      lat: double.tryParse(json["lat"].toString()) ?? 0,
+      lng: double.tryParse(json["lng"].toString()) ?? 0,
     );
   }
 }

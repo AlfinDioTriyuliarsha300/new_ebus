@@ -24,6 +24,10 @@ class SocketService {
       socketUrl,
       io.OptionBuilder()
           .setTransports(['websocket'])
+          .enableReconnection()
+          .setReconnectionAttempts(999999)
+          .setReconnectionDelay(2000)
+          .setReconnectionDelayMax(5000)
           .disableAutoConnect()
           .build(),
     );
@@ -38,6 +42,22 @@ class SocketService {
       print("🔴 Socket Disconnected");
     });
 
+    _socket!.onReconnect((_) {
+      print("🟢 Socket Reconnected");
+    });
+
+    _socket!.onReconnectAttempt((attempt) {
+      print("🔄 Reconnect Attempt : $attempt");
+    });
+
+    _socket!.onReconnectError((error) {
+      print("❌ Reconnect Error : $error");
+    });
+
+    _socket!.onReconnectFailed((_) {
+      print("❌ Reconnect Failed");
+    });
+
     _socket!.onConnectError((data) {
       print("Socket Error : $data");
     });
@@ -48,7 +68,10 @@ class SocketService {
   }
 
   void disconnect() {
+    _socket?.off("bus_location");
     _socket?.disconnect();
+    _socket?.dispose();
+    _socket = null;
   }
 
   void dispose() {

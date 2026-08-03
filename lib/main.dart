@@ -13,6 +13,8 @@ import 'package:new_ebus/providers/terminal_provider.dart';
 import 'package:new_ebus/providers/ticket_provider.dart';
 import 'package:new_ebus/providers/user_provider.dart';
 import 'package:new_ebus/providers/monitoring_provider.dart';
+import 'package:firebase_core/firebase_core.dart' hide FirebaseService;
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'package:provider/provider.dart';
 import 'providers/province_provider.dart';
@@ -25,9 +27,16 @@ import 'providers/passenger_tracking_provider.dart';
 import 'core/routes/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/socket/socket_service.dart';
+import 'core/services/firebase_service.dart';
 
-void main() {
+import 'firebase_options.dart';
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  await FirebaseService.instance.initialize();
 
   SocketService.connect();
 
@@ -76,6 +85,19 @@ void main() {
       child: const EBusApp(),
     ),
   );
+}
+
+Future<void> initFirebaseMessaging() async {
+  final messaging = FirebaseMessaging.instance;
+
+  await messaging.requestPermission(alert: true, badge: true, sound: true);
+
+  final token = await messaging.getToken();
+
+  debugPrint("==============================");
+  debugPrint("FCM TOKEN");
+  debugPrint(token);
+  debugPrint("==============================");
 }
 
 class EBusApp extends StatelessWidget {
