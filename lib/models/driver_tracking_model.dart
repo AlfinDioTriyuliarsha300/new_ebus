@@ -36,16 +36,13 @@ class BusTracking {
   final int id;
   final String nomorBus;
   final String platNomor;
-  final String status;
   final bool tracking;
 
-  // ==========================
-  // TAMBAHAN
-  // ==========================
-  final String currentZone;
-  final String currentZoneStatus;
-  final int routeIndex;
-  final double progress;
+  String status;
+  String currentZone;
+  String currentZoneStatus;
+  int routeIndex;
+  double progress;
 
   BusTracking({
     required this.id,
@@ -71,6 +68,19 @@ class BusTracking {
       routeIndex: json["route_index"] ?? 0,
       progress: double.tryParse(json["progress"].toString()) ?? 0,
     );
+  }
+
+  void updateFromSocket(Map<String, dynamic> json) {
+    status = json["status"] ?? status;
+
+    currentZone = json["current_zone"] ?? currentZone;
+
+    currentZoneStatus = json["current_zone_status"] ?? currentZoneStatus;
+
+    progress =
+        double.tryParse((json["progress"] ?? progress).toString()) ?? progress;
+
+    routeIndex = json["route_index"] ?? routeIndex;
   }
 }
 
@@ -120,52 +130,27 @@ class LocationTracking {
     required this.routeIndex,
   });
 
-  factory LocationTracking.fromJson(
-    Map<String,dynamic> json){
-
+  factory LocationTracking.fromJson(Map<String, dynamic> json) {
     return LocationTracking(
+      lat: double.tryParse(json["lat"].toString()) ?? 0,
 
-      lat:
-        double.tryParse(
-          json["lat"].toString(),
-        ) ?? 0,
+      lng: double.tryParse(json["lng"].toString()) ?? 0,
 
-      lng:
-        double.tryParse(
-          json["lng"].toString(),
-        ) ?? 0,
+      speed: double.tryParse(json["speed"].toString()) ?? 0,
 
-      speed:
-        double.tryParse(
-          json["speed"].toString(),
-        ) ?? 0,
+      heading: double.tryParse(json["heading"].toString()) ?? 0,
 
-      heading:
-        double.tryParse(
-          json["heading"].toString(),
-        ) ?? 0,
+      accuracy: double.tryParse(json["accuracy"].toString()) ?? 0,
 
-      accuracy:
-        double.tryParse(
-          json["accuracy"].toString(),
-        ) ?? 0,
+      updatedAt: json["updated_at"]?.toString() ?? "",
 
-      updatedAt:
-        json["updated_at"]?.toString() ?? "",
+      currentZone: json["current_zone"] ?? "-",
 
-      currentZone:
-        json["current_zone"] ?? "-",
+      currentZoneStatus: json["current_zone_status"] ?? "-",
 
-      currentZoneStatus:
-        json["current_zone_status"] ?? "-",
+      progress: double.tryParse(json["progress"].toString()) ?? 0,
 
-      progress:
-        double.tryParse(
-          json["progress"].toString(),
-        ) ?? 0,
-
-      routeIndex:
-        json["route_index"] ?? 0,
+      routeIndex: json["route_index"] ?? 0,
     );
   }
 }

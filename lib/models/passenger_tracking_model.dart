@@ -136,6 +136,15 @@ class BusData {
       progress: double.tryParse(json["progress"].toString()) ?? 0,
     );
   }
+
+  void updateFromSocket(Map<String, dynamic> json) {
+    currentZone = json["current_zone"] ?? currentZone;
+
+    currentZoneStatus = json["current_zone_status"] ?? currentZoneStatus;
+
+    progress =
+        double.tryParse((json["progress"] ?? progress).toString()) ?? progress;
+  }
 }
 
 class LocationData {

@@ -59,9 +59,7 @@ class PassengerTrackingProvider extends ChangeNotifier {
       return "Bus sedang berhenti";
     }
 
-    return estimatedArrival == null
-    ? "-"
-    : "$estimatedArrival menit";
+    return estimatedArrival == null ? "-" : "$estimatedArrival menit";
   }
 
   Color get etaColor {
@@ -273,7 +271,9 @@ class PassengerTrackingProvider extends ChangeNotifier {
   void updateEstimatedArrival() {
     if (trackingData == null) return;
 
-    estimatedArrival = trackingData!.calculateEstimatedArrival();
+    estimatedArrival =
+        trackingData!.location.estimatedMinutes ??
+        trackingData!.calculateEstimatedArrival();
   }
 
   void stopRealtime() {
