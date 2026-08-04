@@ -1,5 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'local_notification_service.dart';
 
 class FirebaseService {
   FirebaseService._();
@@ -10,11 +11,7 @@ class FirebaseService {
 
   Future<void> initialize() async {
     // Request permission
-    await _messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+    await _messaging.requestPermission(alert: true, badge: true, sound: true);
 
     // Ambil token
     final token = await _messaging.getToken();
@@ -25,15 +22,22 @@ class FirebaseService {
     debugPrint("==============================");
 
     // Listener saat aplikasi sedang dibuka
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      debugPrint("====================================");
-      debugPrint("FCM FOREGROUND MESSAGE");
+    FirebaseMessaging.onMessage.listen((message) async {
 
-      debugPrint("TITLE : ${message.notification?.title}");
-      debugPrint("BODY  : ${message.notification?.body}");
-      debugPrint("DATA  : ${message.data}");
+      print("====================================");
+      print("FCM FOREGROUND MESSAGE");
+      print("TITLE : ${message.notification?.title}");
+      print("BODY  : ${message.notification?.body}");
+      print("====================================");
 
-      debugPrint("====================================");
+      await LocalNotificationService.instance.show(
+        title:
+            message.notification?.title ??
+            "E-Bus",
+        body:
+            message.notification?.body ??
+            "",
+      );
     });
   }
 }

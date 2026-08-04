@@ -15,6 +15,7 @@ import 'package:new_ebus/providers/user_provider.dart';
 import 'package:new_ebus/providers/monitoring_provider.dart';
 import 'package:firebase_core/firebase_core.dart' hide FirebaseService;
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 
 import 'package:provider/provider.dart';
 import 'providers/province_provider.dart';
@@ -28,13 +29,30 @@ import 'core/routes/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/socket/socket_service.dart';
 import 'core/services/firebase_service.dart';
+import 'core/services/local_notification_service.dart';
 
 import 'firebase_options.dart';
+
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  debugPrint("====================================");
+  debugPrint("BACKGROUND MESSAGE");
+  debugPrint("Title : ${message.notification?.title}");
+  debugPrint("Body  : ${message.notification?.body}");
+  debugPrint("Data  : ${message.data}");
+  debugPrint("====================================");
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  await LocalNotificationService.instance.initialize();
+
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
   await FirebaseService.instance.initialize();
 

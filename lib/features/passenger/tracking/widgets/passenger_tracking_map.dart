@@ -288,7 +288,7 @@ class _TrackingMapState extends State<PassengerTrackingMap> {
                       const Icon(
                         Icons.location_on,
                         color: Colors.orange,
-                        size: 30,
+                        size: 50,
                       ),
                       Text(
                         cp.nama,
@@ -310,8 +310,8 @@ class _TrackingMapState extends State<PassengerTrackingMap> {
             markers: [
               Marker(
                 point: _animatedPosition ?? widget.provider.busLocation!,
-                width: 65,
-                height: 65,
+                width: 80,
+                height: 80,
                 child: GestureDetector(
                   onTap: _showBusInfo,
                   child: Column(
@@ -354,7 +354,7 @@ class _TrackingMapState extends State<PassengerTrackingMap> {
                         child: Icon(
                           Icons.directions_bus,
                           color: busColor,
-                          size: 42,
+                          size: 55,
                         ),
                       ),
                     ],
