@@ -12,14 +12,13 @@ class FirebaseService {
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
   Future<void> initialize() async {
-    // Android/iOS saja
-    if (!kIsWeb) {
-      await _messaging.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
+    // Flutter Web tidak memakai Firebase Messaging Android
+    if (kIsWeb) {
+      debugPrint("Firebase Messaging dilewati pada Web");
+      return;
     }
+
+    await _messaging.requestPermission(alert: true, badge: true, sound: true);
 
     final token = await _messaging.getToken();
 
@@ -35,13 +34,10 @@ class FirebaseService {
       debugPrint("BODY  : ${message.notification?.body}");
       debugPrint("====================================");
 
-      // Web tidak memakai flutter_local_notifications
-      if (!kIsWeb) {
-        await LocalNotificationService.instance.show(
-          title: message.notification?.title ?? "E-Bus",
-          body: message.notification?.body ?? "",
-        );
-      }
+      await LocalNotificationService.instance.show(
+        title: message.notification?.title ?? "E-Bus",
+        body: message.notification?.body ?? "",
+      );
     });
   }
 }
