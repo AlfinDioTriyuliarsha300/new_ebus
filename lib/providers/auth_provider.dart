@@ -48,6 +48,7 @@ class AuthProvider extends ChangeNotifier {
         cityId: currentUser!.cityId,
       );
 
+      if (!kIsWeb) {
       final token = await FirebaseMessaging.instance.getToken();
 
       debugPrint("================================");
@@ -65,6 +66,9 @@ class AuthProvider extends ChangeNotifier {
       } else {
         debugPrint("FCM TOKEN NULL");
       }
+    } else {
+      debugPrint("WEB -> Skip Firebase Messaging");
+    }
 
       isLoggedIn = true;
 
