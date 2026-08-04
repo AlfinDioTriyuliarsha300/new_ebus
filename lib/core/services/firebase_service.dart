@@ -1,5 +1,7 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+
 import 'local_notification_service.dart';
 
 class FirebaseService {
@@ -10,10 +12,15 @@ class FirebaseService {
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
   Future<void> initialize() async {
-    // Request permission
-    await _messaging.requestPermission(alert: true, badge: true, sound: true);
+    // Android/iOS saja
+    if (!kIsWeb) {
+      await _messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+    }
 
-    // Ambil token
     final token = await _messaging.getToken();
 
     debugPrint("==============================");
@@ -21,23 +28,20 @@ class FirebaseService {
     debugPrint(token);
     debugPrint("==============================");
 
-    // Listener saat aplikasi sedang dibuka
     FirebaseMessaging.onMessage.listen((message) async {
+      debugPrint("====================================");
+      debugPrint("FCM FOREGROUND MESSAGE");
+      debugPrint("TITLE : ${message.notification?.title}");
+      debugPrint("BODY  : ${message.notification?.body}");
+      debugPrint("====================================");
 
-      print("====================================");
-      print("FCM FOREGROUND MESSAGE");
-      print("TITLE : ${message.notification?.title}");
-      print("BODY  : ${message.notification?.body}");
-      print("====================================");
-
-      await LocalNotificationService.instance.show(
-        title:
-            message.notification?.title ??
-            "E-Bus",
-        body:
-            message.notification?.body ??
-            "",
-      );
+      // Web tidak memakai flutter_local_notifications
+      if (!kIsWeb) {
+        await LocalNotificationService.instance.show(
+          title: message.notification?.title ?? "E-Bus",
+          body: message.notification?.body ?? "",
+        );
+      }
     });
   }
 }
